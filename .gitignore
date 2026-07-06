@@ -39,3 +39,18 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Cloud Functions
+functions/lib/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# env files (Firebase config / secrets must never be committed)
+.env
+.env.local
+google-services.json
+GoogleService-Info.plist
