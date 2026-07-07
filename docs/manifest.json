@@ -1,0 +1,10 @@
+{
+  "name": "Reflect",
+  "short_name": "Reflect",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#2f6f4e",
+  "icons": [{ "src": "apple-touch-icon.png", "sizes": "1024x1024", "type": "image/png" }]
+}

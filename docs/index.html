@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reflect UI設計 v0.1</title>
+
+<!-- Safari: ホーム画面に追加してWebアプリ(スタンドアロン)として開くための設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Reflect">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14160f" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.png">
+<link rel="manifest" href="manifest.json">
+
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --surface-sunken: #f1f2ef;
+    --border: #e6e5e0;
+    --text: #1c1f1a;
+    --text-secondary: #63695f;
+    --text-tertiary: #9a9f92;
+    --accent: #2f6f4e;
+    --accent-strong: #235a3e;
+    --accent-soft: #e7f1ea;
+    --danger: #b3493f;
+    --shadow-sm: 0 1px 2px rgba(28, 31, 26, 0.05);
+    --shadow-md: 0 2px 10px rgba(28, 31, 26, 0.07);
+    --radius-card: 18px;
+    --radius-control: 12px;
+    --phone-bezel: #0c0d0b;
+
+    --emo-1: #c2564a;
+    --emo-2: #d99257;
+    --emo-3: #d3b355;
+    --emo-4: #8fb06a;
+    --emo-5: #3f8f63;
+  }
+  :root[data-theme="dark"] {
+    --bg: #14160f;
+    --surface: #1d201a;
+    --surface-sunken: #262922;
+    --border: #33362c;
+    --text: #edeee7;
+    --text-secondary: #a6ab9d;
+    --text-tertiary: #767b6d;
+    --accent: #6cc494;
+    --accent-strong: #86d3a9;
+    --accent-soft: #223327;
+    --danger: #d97b70;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.35);
+    --phone-bezel: #050604;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14160f;
+      --surface: #1d201a;
+      --surface-sunken: #262922;
+      --border: #33362c;
+      --text: #edeee7;
+      --text-secondary: #a6ab9d;
+      --text-tertiary: #767b6d;
+      --accent: #6cc494;
+      --accent-strong: #86d3a9;
+      --accent-soft: #223327;
+      --danger: #d97b70;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.35);
+      --phone-bezel: #050604;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+  }
+  body {
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Yu Gothic", sans-serif;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+  .page { max-width: 1080px; margin: 0 auto; padding: 48px 24px 100px; }
+
+  .masthead { margin-bottom: 56px; }
+  .eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.01em; margin: 8px 0 10px; text-wrap: balance; }
+  .lede { color: var(--text-secondary); max-width: 64ch; font-size: 15.5px; }
+
+  section.block { margin-top: 56px; }
+  h2 { font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+  .block-note { color: var(--text-secondary); font-size: 13.5px; margin: 0 0 24px; max-width: 68ch; }
+
+  /* ---- token swatches ---- */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .swatch {
+    width: 108px;
+  }
+  .swatch .chip {
+    height: 64px; border-radius: 12px; border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .swatch .label { font-size: 11.5px; color: var(--text-secondary); margin-top: 6px; }
+  .swatch .hex { font-family: "SFMono-Regular", Consolas, monospace; font-size: 10.5px; color: var(--text-tertiary); }
+
+  .type-scale { display: flex; flex-direction: column; gap: 18px; }
+  .type-row { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 14px; }
+  .type-row .tag { width: 130px; flex: none; font-size: 11.5px; color: var(--text-tertiary); font-family: "SFMono-Regular", Consolas, monospace; }
+  .t-display { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; }
+  .t-title { font-size: 20px; font-weight: 700; }
+  .t-subtitle { font-size: 16px; font-weight: 600; }
+  .t-body { font-size: 15px; font-weight: 400; }
+  .t-caption { font-size: 12.5px; color: var(--text-secondary); }
+  .t-numeral { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .spacing-row { display: flex; align-items: flex-end; gap: 16px; }
+  .spacing-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .spacing-item .bar { width: 24px; background: var(--accent); border-radius: 4px; }
+  .spacing-item .lbl { font-size: 11px; color: var(--text-tertiary); font-family: "SFMono-Regular", Consolas, monospace; }
+
+  /* ---- component gallery ---- */
+  .gallery { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  .gcard {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; box-shadow: var(--shadow-sm); width: 260px;
+  }
+  .gcard h4 { margin: 0 0 14px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); font-weight: 600; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; font-size: 14.5px; font-weight: 600; font-family: inherit; }
+  .btn-primary { background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 999px; }
+  .btn-secondary { background: var(--surface-sunken); color: var(--text); padding: 12px 20px; border-radius: 999px; }
+  .btn-ghost { background: transparent; color: var(--accent); padding: 10px 14px; }
+  .btn-row { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
+  .field input {
+    border: 1px solid var(--border); background: var(--surface-sunken); border-radius: var(--radius-control);
+    padding: 11px 13px; font-size: 14.5px; color: var(--text); font-family: inherit;
+  }
+  .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .emo-picker { display: flex; gap: 10px; }
+  .emo-dot { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px solid transparent; cursor: pointer; }
+  .emo-dot.selected { border-color: var(--text); }
+
+  .pill { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .pill-status-planned { background: var(--accent-soft); color: var(--accent-strong); }
+  .pill-status-progress { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+  .pill-status-done { background: var(--surface-sunken); color: var(--text-tertiary); }
+  .pill-priority-high { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+  .pill-priority-medium { background: var(--surface-sunken); color: var(--text-secondary); }
+  .tag-category { background: var(--surface-sunken); color: var(--text-secondary); border-radius: 999px; font-size: 11.5px; padding: 3px 10px; }
+
+  .checklist-item { display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 7px 0; }
+  .checklist-item .box { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--text-tertiary); flex: none; }
+  .checklist-item .box.checked { background: var(--accent); border-color: var(--accent); }
+  .checklist-item.done span { color: var(--text-tertiary); text-decoration: line-through; }
+
+  /* ---- phone frame ---- */
+  .phones { display: flex; flex-wrap: wrap; gap: 40px; }
+  .phone {
+    width: 300px; height: 620px; background: var(--phone-bezel); border-radius: 42px;
+    padding: 12px; box-shadow: var(--shadow-md);
+    flex: none;
+  }
+  .phone-screen {
+    width: 100%; height: 100%; background: var(--bg); border-radius: 30px; overflow: hidden;
+    display: flex; flex-direction: column; position: relative;
+  }
+  .statusbar { height: 30px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 11px; font-weight: 600; color: var(--text); }
+  .screen-body { flex: 1; overflow: hidden; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 18px; }
+  .phone-caption { text-align: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+
+  .app-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
+    padding: 14px 16px; box-shadow: var(--shadow-sm);
+  }
+  .greet { font-size: 12.5px; color: var(--text-secondary); }
+  .greet-name { font-size: 19px; font-weight: 700; margin-top: 2px; }
+
+  .stat-row { display: flex; gap: 10px; }
+  .stat-card { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px; box-shadow: var(--shadow-sm); }
+  .stat-card .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .stat-card .lbl { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+
+  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); margin-bottom: 8px; }
+
+  .task-card { display: flex; flex-direction: column; gap: 6px; }
+  .task-title { font-size: 14.5px; font-weight: 600; }
+  .task-meta { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text-secondary); }
+
+  .fail-card { display: flex; gap: 10px; align-items: center; }
+  .fail-emo { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex: none; }
+  .fail-title { font-size: 13.5px; font-weight: 600; }
+  .fail-time { font-size: 11px; color: var(--text-tertiary); }
+
+  .wizard-progress { display: flex; gap: 6px; margin-bottom: 4px; }
+  .wizard-progress .seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+  .wizard-progress .seg.active { background: var(--accent); }
+  .wizard-step-lbl { font-size: 11.5px; color: var(--text-tertiary); font-weight: 600; }
+  .wizard-title { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+  .ai-card { border: 1px solid var(--accent-soft); background: var(--accent-soft); border-radius: 14px; padding: 12px 14px; }
+  .ai-card h5 { margin: 0 0 4px; font-size: 12px; color: var(--accent-strong); font-weight: 700; }
+  .ai-card p { margin: 0; font-size: 13px; color: var(--text); }
+  .ai-card ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+
+  .search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface-sunken); border-radius: 12px; padding: 9px 12px; font-size: 13px; color: var(--text-tertiary); }
+  .chip-row { display: flex; gap: 8px; overflow-x: auto; }
+  .chip { flex: none; font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--surface-sunken); color: var(--text-secondary); }
+  .chip.active { background: var(--accent); color: #fff; }
+
+  .list-card { display: flex; gap: 10px; align-items: flex-start; }
+  .list-card .emo { width: 28px; height: 28px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .list-card .body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .list-card .title { font-size: 13.5px; font-weight: 600; }
+  .list-card .metarow { display: flex; gap: 6px; align-items: center; }
+
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 12px; }
+  .tl-dotcol { display: flex; flex-direction: column; align-items: center; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); margin-top: 4px; }
+  .tl-dot.on { background: var(--accent); }
+  .tl-line { width: 1.5px; flex: 1; background: var(--border); min-height: 22px; }
+  .tl-body { padding-bottom: 16px; }
+  .tl-label { font-size: 11.5px; color: var(--text-tertiary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tl-content { font-size: 13.5px; margin-top: 2px; }
+  .tl-content.muted { color: var(--text-tertiary); }
+
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-tertiary); font-size: 12.5px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">Reflect &middot; 開発フロー Step 8</div>
+    <h1>UI設計 v0.1</h1>
+    <p class="lede">白基調・広い余白・カードUIというデザインコンセプトを、実際のトークンとコンポーネント、主要画面のモックアップまで具体化する。アクセントカラーは「成長」を象徴するフォレストグリーンに統一する。</p>
+  </div>
+
+  <section class="block">
+    <h2>1. カラートークン</h2>
+    <p class="block-note">感情アイコンの5段階色は、ブランドアクセント（緑）とは独立した意味色として設計する（成長を示す色と感情を示す色を混同させない）。</p>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:var(--bg)"></div><div class="label">bg</div><div class="hex">背景</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--surface)"></div><div class="label">surface</div><div class="hex">カード</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--surface-sunken)"></div><div class="label">surface-sunken</div><div class="hex">入力欄・チップ</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--accent)"></div><div class="label">accent</div><div class="hex">#2F6F4E</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--accent-soft)"></div><div class="label">accent-soft</div><div class="hex">AI提案背景</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--danger)"></div><div class="label">danger</div><div class="hex">優先度高・遅延</div></div>
+    </div>
+    <p class="block-note" style="margin-top:18px">感情スケール（5段階・意味色）</p>
+    <div class="swatch-row">
+      <div class="swatch"><div class="chip" style="background:var(--emo-1)"></div><div class="label">1 とても悪い</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--emo-2)"></div><div class="label">2 悪い</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--emo-3)"></div><div class="label">3 ふつう</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--emo-4)"></div><div class="label">4 良い</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--emo-5)"></div><div class="label">5 とても良い</div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>2. タイポグラフィ</h2>
+    <p class="block-note">iOSネイティブに馴染ませるため、装飾的な見出し書体は使わずシステムフォント（San Francisco系）1系統で統一。数値（改善率・ストリーク）だけ大きく太くして「見た瞬間にわかる」情報にする。</p>
+    <div class="type-scale">
+      <div class="type-row"><span class="tag">display / 32</span><span class="t-display">できなかったを、できるに。</span></div>
+      <div class="type-row"><span class="tag">title / 20 bold</span><span class="t-title">今週の振り返り</span></div>
+      <div class="type-row"><span class="tag">subtitle / 16 semibold</span><span class="t-subtitle">会議前に発言メモを3行作る</span></div>
+      <div class="type-row"><span class="tag">body / 15</span><span class="t-body">準備不足で言いたいことが整理できず、発言のタイミングを逃した。</span></div>
+      <div class="type-row"><span class="tag">caption / 12.5</span><span class="t-caption">2時間前・仕事</span></div>
+      <div class="type-row"><span class="tag">numeral / 34 tabular</span><span class="t-numeral">62%</span></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>3. スペーシング</h2>
+    <p class="block-note">4px基準のスケール。カード内余白は16px、カード間は12〜16px、セクション間は24〜32pxを基本とする。</p>
+    <div class="spacing-row">
+      <div class="spacing-item"><div class="bar" style="height:4px"></div><div class="lbl">4</div></div>
+      <div class="spacing-item"><div class="bar" style="height:8px"></div><div class="lbl">8</div></div>
+      <div class="spacing-item"><div class="bar" style="height:12px"></div><div class="lbl">12</div></div>
+      <div class="spacing-item"><div class="bar" style="height:16px"></div><div class="lbl">16</div></div>
+      <div class="spacing-item"><div class="bar" style="height:24px"></div><div class="lbl">24</div></div>
+      <div class="spacing-item"><div class="bar" style="height:32px"></div><div class="lbl">32</div></div>
+      <div class="spacing-item"><div class="bar" style="height:48px"></div><div class="lbl">48</div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>4. コンポーネント</h2>
+    <div class="gallery">
+      <div class="gcard">
+        <h4>Button</h4>
+        <div class="btn-row">
+          <button class="btn btn-primary">改善策を保存</button>
+          <button class="btn btn-secondary">あとで入力する</button>
+          <button class="btn btn-ghost">スキップする</button>
+        </div>
+      </div>
+      <div class="gcard">
+        <h4>Input</h4>
+        <div class="field">
+          <label>タイトル</label>
+          <input type="text" value="会議で発言できなかった" readonly>
+        </div>
+      </div>
+      <div class="gcard">
+        <h4>Emotion Picker</h4>
+        <div class="emo-picker">
+          <div class="emo-dot" style="background:var(--emo-1)">😞</div>
+          <div class="emo-dot" style="background:var(--emo-2)">🙁</div>
+          <div class="emo-dot selected" style="background:var(--emo-3)">😐</div>
+          <div class="emo-dot" style="background:var(--emo-4)">🙂</div>
+          <div class="emo-dot" style="background:var(--emo-5)">😄</div>
+        </div>
+      </div>
+      <div class="gcard">
+        <h4>Status / Priority / Category</h4>
+        <div class="btn-row" style="gap:8px">
+          <span class="pill pill-status-planned">未対応</span>
+          <span class="pill pill-status-progress">実践報告待ち</span>
+          <span class="pill pill-status-done">完了</span>
+          <span class="pill pill-priority-high">優先度: 高</span>
+          <span class="tag-category">仕事</span>
+        </div>
+      </div>
+      <div class="gcard">
+        <h4>Checklist</h4>
+        <div class="checklist-item done"><div class="box checked"></div><span>発言メモのテンプレートを作る</span></div>
+        <div class="checklist-item"><div class="box"></div><span>会議前に3行読み返す</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>5. 主要画面モックアップ</h2></div>
+    <p class="block-note">端末のライト/ダーク設定に自動追従する（そのままアプリのダークモード対応のプレビューになる）。</p>
+    <div class="phones">
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div>
+              <div class="greet">2026年7月7日（火）</div>
+              <div class="greet-name">おかえりなさい</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-card"><div class="num">62%</div><div class="lbl">今週の改善率</div></div>
+              <div class="stat-card"><div class="num">5日</div><div class="lbl">連続記録</div></div>
+            </div>
+            <div>
+              <div class="section-title">未対応の改善策</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div class="app-card task-card">
+                  <div class="task-title">会議前に発言メモを3行作る</div>
+                  <div class="task-meta"><span class="tag-category">仕事</span><span class="pill pill-priority-high">高</span><span>期限 7/10</span></div>
+                </div>
+                <div class="app-card task-card">
+                  <div class="task-title">毎朝6:30に机に向かう</div>
+                  <div class="task-meta"><span class="tag-category">勉強</span><span class="pill pill-status-planned">中</span><span>期限 7/8</span></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="section-title">最近の失敗</div>
+              <div class="app-card fail-card">
+                <div class="fail-emo" style="background:var(--emo-2)">🙁</div>
+                <div>
+                  <div class="fail-title">資料の確認不足で指摘を受けた</div>
+                  <div class="fail-time">2時間前・仕事</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-03 ホーム</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div>
+              <div class="wizard-progress">
+                <div class="seg active"></div><div class="seg active"></div><div class="seg active"></div><div class="seg"></div>
+              </div>
+              <div class="wizard-step-lbl">STEP 3 / 4</div>
+              <div class="wizard-title">AIからの提案</div>
+            </div>
+            <div class="ai-card">
+              <h5>原因の補足</h5>
+              <p>準備不足に加え、発言のタイミングを逃す判断ミスも重なっています。</p>
+            </div>
+            <div class="ai-card">
+              <h5>改善策の提案</h5>
+              <ul><li>会議前に発言メモを3行作る</li><li>最初の5分で1回発言する</li><li>議題を前日に確認する</li></ul>
+            </div>
+            <div class="ai-card">
+              <h5>類似の過去の失敗</h5>
+              <p>6/12「定例会議で意見が言えなかった」と似ています</p>
+            </div>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-primary">この提案を採用する</button>
+              <button class="btn btn-ghost">自分で入力する</button>
+            </div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-04 登録ウィザード（Step3 AI提案）</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div class="t-title">会議で発言できなかった</div>
+            <div class="task-meta"><span class="tag-category">仕事</span><span class="pill pill-status-progress">実践報告待ち</span></div>
+            <div class="timeline">
+              <div class="tl-item">
+                <div class="tl-dotcol"><div class="tl-dot on"></div><div class="tl-line"></div></div>
+                <div class="tl-body"><div class="tl-label">登録</div><div class="tl-content">準備不足で言いたいことが整理できず、発言のタイミングを逃した</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dotcol"><div class="tl-dot on"></div><div class="tl-line"></div></div>
+                <div class="tl-body"><div class="tl-label">原因分析</div><div class="tl-content">準備不足・判断ミス</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dotcol"><div class="tl-dot on"></div><div class="tl-line"></div></div>
+                <div class="tl-body"><div class="tl-label">AI提案</div><div class="tl-content">会議前に発言メモを3行作る、ほか2件</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dotcol"><div class="tl-dot on"></div><div class="tl-line"></div></div>
+                <div class="tl-body"><div class="tl-label">改善策</div><div class="tl-content">発言メモを3行作る（期限 7/10・優先度高）</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-dotcol"><div class="tl-dot"></div></div>
+                <div class="tl-body"><div class="tl-label">実践 &middot; 効果確認</div><div class="tl-content muted">まだ記録がありません</div></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:auto">実践を記録する</button>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-08 詳細（PDCAタイムライン）</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div class="search-bar">&#128269; 振り返りを検索</div>
+            <div class="chip-row">
+              <div class="chip active">すべて</div>
+              <div class="chip">未分析</div>
+              <div class="chip">未対応</div>
+              <div class="chip">実践報告待ち</div>
+              <div class="chip">完了</div>
+            </div>
+            <div class="chip-row">
+              <div class="chip active">全カテゴリ</div>
+              <div class="chip">仕事</div>
+              <div class="chip">勉強</div>
+              <div class="chip">健康</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="app-card list-card">
+                <div class="emo" style="background:var(--emo-2)">🙁</div>
+                <div class="body">
+                  <div class="title">会議で発言できなかった</div>
+                  <div class="metarow"><span class="tag-category">仕事</span><span class="pill pill-status-progress">実践報告待ち</span></div>
+                </div>
+              </div>
+              <div class="app-card list-card">
+                <div class="emo" style="background:var(--emo-3)">😐</div>
+                <div class="body">
+                  <div class="title">資格試験の勉強が続かない</div>
+                  <div class="metarow"><span class="tag-category">勉強</span><span class="pill pill-status-planned">未対応</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-07 一覧</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div>
+              <div class="section-title">実践を記録する</div>
+              <div class="t-title" style="margin-top:6px">会議前に発言メモを3行作る</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              <button class="btn btn-primary">実施した</button>
+              <button class="btn btn-secondary">未実施</button>
+            </div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-05 実践記録</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div>
+              <div class="section-title">効果確認</div>
+              <div class="t-title" style="margin-top:6px">「発言メモを3行作る」の効果はどうでしたか？</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              <button class="btn btn-secondary" style="border-radius:999px">改善した</button>
+              <button class="btn btn-secondary" style="border-radius:999px">少し改善した</button>
+              <button class="btn btn-secondary" style="border-radius:999px">変わらない</button>
+              <button class="btn btn-secondary" style="border-radius:999px">悪化した</button>
+            </div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-06 効果確認</div>
+      </div>
+
+      <div>
+        <div class="phone"><div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="screen-body">
+            <div class="t-title">設定</div>
+            <div>
+              <div class="section-title">アカウント</div>
+              <div class="t-body" style="margin-top:4px">Aさん</div>
+              <div class="t-caption">a-san@example.com</div>
+            </div>
+            <div>
+              <div class="section-title" style="margin-bottom:8px">表示テーマ</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="app-card" style="flex-direction:row;display:flex;align-items:center;justify-content:space-between">
+                  <span class="t-body">端末の設定に合わせる</span><span style="color:var(--accent);font-weight:700">✓</span>
+                </div>
+                <div class="app-card" style="flex-direction:row;display:flex;align-items:center;justify-content:space-between">
+                  <span class="t-body">ライト</span>
+                </div>
+                <div class="app-card" style="flex-direction:row;display:flex;align-items:center;justify-content:space-between">
+                  <span class="t-body">ダーク</span>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-secondary" style="border-radius:999px">ログアウト</button>
+            <div style="text-align:center;color:var(--danger);font-size:13px;font-weight:600">アカウントを削除する</div>
+          </div>
+        </div></div>
+        <div class="phone-caption">S-09 設定</div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    Reflect &middot; UI設計 v0.1（実装反映版） &middot; 工程1〜13（要件定義〜MVP実装）まで完了 &middot; 次工程: AI機能追加（Blazeプラン契約待ち）／テスト
+  </footer>
+
+</div>
+</body>
+</html>
