@@ -54,3 +54,6 @@ ui-debug.log
 .env.local
 google-services.json
 GoogleService-Info.plist
+
+# Claude Code session files
+.claude/scheduled_tasks.lock

@@ -9,7 +9,7 @@ import type { AiSuggestionResult } from '@/features/reflections/services/aiSugge
 import type { BasicInfoFormValues, ImprovementFormValues } from '@/features/reflections/schemas';
 import type { Cause } from '@/types/reflection';
 
-import { useReflection } from '../hooks/useReflections';
+import { useInvalidateReflections, useReflection } from '../hooks/useReflections';
 import { Step1BasicInfo } from './wizard-steps/Step1BasicInfo';
 import { Step2Causes } from './wizard-steps/Step2Causes';
 import { Step3AiSuggestion } from './wizard-steps/Step3AiSuggestion';
@@ -33,6 +33,7 @@ export function WizardScreen({ resumeId }: WizardScreenProps) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { data: existing, isLoading: loadingExisting } = useReflection(resumeId);
+  const invalidate = useInvalidateReflections();
 
   const [step, setStep] = useState<WizardStep>(resumeId ? 2 : 1);
   const [reflectionId, setReflectionId] = useState<string | null>(resumeId ?? null);
@@ -53,6 +54,7 @@ export function WizardScreen({ resumeId }: WizardScreenProps) {
     try {
       const id = await reflectionsRepository.create(user.uid, values);
       setReflectionId(id);
+      invalidate();
       setStep(2);
     } finally {
       setSubmitting(false);
@@ -64,6 +66,7 @@ export function WizardScreen({ resumeId }: WizardScreenProps) {
     setSubmitting(true);
     try {
       await reflectionsRepository.updateCauses(user.uid, reflectionId, causes, note || null);
+      invalidate();
       setStep(3);
     } finally {
       setSubmitting(false);
@@ -73,6 +76,7 @@ export function WizardScreen({ resumeId }: WizardScreenProps) {
   const handleSaveSuggestion = async (suggestion: AiSuggestionResult) => {
     if (!user || !reflectionId) return;
     await reflectionsRepository.saveAiSuggestion(user.uid, reflectionId, suggestion);
+    invalidate();
   };
 
   const handleAdopt = (text: string) => {
@@ -85,6 +89,7 @@ export function WizardScreen({ resumeId }: WizardScreenProps) {
     setSubmitting(true);
     try {
       await reflectionsRepository.confirmImprovement(user.uid, reflectionId, values);
+      invalidate();
       router.back();
     } finally {
       setSubmitting(false);

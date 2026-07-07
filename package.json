@@ -61,6 +61,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
+    "deploy:web": "expo export --platform web && node scripts/prepare-web-pages.mjs && rm -rf docs && cp -r dist docs",
     "prepare": "husky"
   },
   "private": true,
