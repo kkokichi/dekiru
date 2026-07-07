@@ -1,6 +1,10 @@
 function renderSettings() {
-  document.getElementById('settings-name').textContent = currentUser.displayName || currentUser.email || 'ユーザー';
-  document.getElementById('settings-email').textContent = currentUser.email || '';
+  document.getElementById('settings-name').textContent =
+    currentUser.displayName || currentUser.email || 'ユーザー';
+  // 表示名がない場合は名前欄にメールが出るので、メール欄は重複表示しない
+  document.getElementById('settings-email').textContent = currentUser.displayName
+    ? currentUser.email || ''
+    : '';
   applyThemeSelection(localStorage.getItem('reflect-theme') || 'system');
 }
 

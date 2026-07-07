@@ -87,11 +87,7 @@
           <div id="home-today-checkins"></div>
         </div>
         <div class="home-section">
-          <div class="section-title">未対応の改善策</div>
-          <div id="home-unresolved"></div>
-        </div>
-        <div class="home-section">
-          <div class="section-title">最近の失敗</div>
+          <div class="section-title">分析待ちの振り返り</div>
           <div id="home-recent"></div>
         </div>
       </div>
@@ -168,6 +164,11 @@
         <div id="detail-timeline"></div>
         <div id="detail-lesson"></div>
         <div id="detail-checkin-history"></div>
+        <div
+          class="card"
+          id="detail-overdue-hint"
+          style="display: none; margin-top: 20px; font-size: 13px; color: var(--text-secondary)"
+        ></div>
         <button type="button" class="btn btn-primary" id="detail-action-btn" style="margin-top: 20px"></button>
         <button
           type="button"
@@ -208,16 +209,18 @@
         </div>
       </div>
 
-      <!-- ══ LESSON（達成時の教訓入力） ══ -->
+      <!-- ══ LESSON（達成時の教訓入力・編集） ══ -->
       <div class="screen" id="lesson">
         <button type="button" class="back-btn" onclick="goBack()">‹ 戻る</button>
-        <div class="eyebrow">達成おめでとうございます 🎉</div>
+        <div class="eyebrow" id="lesson-eyebrow">達成おめでとうございます 🎉</div>
         <h2 id="lesson-action-text" style="font-size: 18px; margin-bottom: 12px"></h2>
         <div class="field">
           <label>今回学んだことを一文で残しましょう（任意）</label>
           <input type="text" id="lesson-input" placeholder="例: 会議は結論から話す" />
         </div>
-        <button type="button" class="btn btn-primary" onclick="saveLessonAndAchieve()">完了する</button>
+        <button type="button" class="btn btn-primary" id="lesson-submit-btn" onclick="saveLessonAndAchieve()">
+          完了する
+        </button>
       </div>
 
       <!-- ══ SETTINGS ══ -->
@@ -277,14 +280,6 @@
             <label>感情</label>
             <div class="emo-picker" id="wizard-emotion-picker"></div>
           </div>
-          <div class="field">
-            <label>重要度</label>
-            <div class="chip-row" id="wizard-importance-chips">
-              <button type="button" class="chip" data-value="low">低</button>
-              <button type="button" class="chip active" data-value="medium">中</button>
-              <button type="button" class="chip" data-value="high">高</button>
-            </div>
-          </div>
           <button type="button" class="btn btn-primary" onclick="submitWizardStep1()">次へ</button>
         </div>
 
@@ -306,7 +301,7 @@
             <input type="text" id="wizard-action-input" placeholder="例: 会議前に発言メモを3行作る" />
           </div>
           <div class="field">
-            <label>期限</label>
+            <label>目標日（いつまで続けるか）</label>
             <input type="date" id="wizard-duedate-input" />
           </div>
           <div class="field">
@@ -315,14 +310,6 @@
               <button type="button" class="chip" data-value="low">低</button>
               <button type="button" class="chip active" data-value="medium">中</button>
               <button type="button" class="chip" data-value="high">高</button>
-            </div>
-          </div>
-          <div class="field">
-            <label>チェックリスト（任意）</label>
-            <div id="wizard-checklist-list"></div>
-            <div class="checklist-add-row">
-              <input type="text" id="wizard-checklist-new-input" placeholder="項目を追加" />
-              <button type="button" class="btn btn-secondary" onclick="addWizardChecklistItem()">追加</button>
             </div>
           </div>
           <button type="button" class="btn btn-primary" onclick="submitWizardStep3()">改善策を保存</button>

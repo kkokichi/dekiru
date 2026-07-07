@@ -12,6 +12,14 @@ const LIST_STATUS_FILTERS = [
   { value: 'done', label: '完了' },
 ];
 
+// 「未分析」は原因分析まで入れて中断したもの（analyzed）も含める
+const STATUS_FILTER_MATCH = {
+  recorded: ['recorded', 'analyzed'],
+  planned: ['planned'],
+  in_progress: ['in_progress'],
+  done: ['done'],
+};
+
 const LIST_DATE_FILTERS = [
   { value: 'all', label: '全期間' },
   { value: 'today', label: '今日' },
@@ -42,6 +50,8 @@ async function renderList() {
 
   document.getElementById('list-view-reflections').classList.toggle('active', listViewMode === 'reflections');
   document.getElementById('list-view-lessons').classList.toggle('active', listViewMode === 'lessons');
+  document.getElementById('list-search-input').placeholder =
+    listViewMode === 'lessons' ? '教訓を検索' : '振り返りを検索';
 
   const statusChipsEl = document.getElementById('list-status-chips');
   statusChipsEl.style.display = listViewMode === 'lessons' ? 'none' : 'flex';
@@ -121,7 +131,8 @@ function renderListResults() {
 
   const filtered = listAllReflections.filter((r) => {
     if (listCategoryFilter !== 'all' && r.categoryId !== listCategoryFilter) return false;
-    if (listStatusFilter !== 'all' && r.status !== listStatusFilter) return false;
+    if (listStatusFilter !== 'all' && !STATUS_FILTER_MATCH[listStatusFilter].includes(r.status))
+      return false;
     if (dateStart && r.occurredAt < dateStart) return false;
     if (query && !r.title.toLowerCase().includes(query)) return false;
     return true;

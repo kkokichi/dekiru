@@ -76,6 +76,13 @@ function dateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
+// 「7月7日（月）」形式。DateまたはYYYY-MM-DD文字列を受け取る
+function formatShortDate(dateOrKey) {
+  const date = typeof dateOrKey === 'string' ? new Date(`${dateOrKey}T00:00:00`) : dateOrKey;
+  const dow = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+  return `${date.getMonth() + 1}月${date.getDate()}日（${dow}）`;
+}
+
 const EMOTION_EMOJI = ['😞', '🙁', '😐', '🙂', '😄'];
 
 const CAUSE_LABELS = {
@@ -89,7 +96,7 @@ const CAUSE_LABELS = {
 
 const STATUS_LABELS = {
   recorded: '未分析',
-  analyzed: '未対応',
+  analyzed: '分析途中',
   planned: '未対応',
   in_progress: '継続中',
   done: '完了',

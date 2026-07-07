@@ -2,7 +2,6 @@
 let wizardStep = 1;
 let wizardReflectionId = null;
 let wizardCauses = [];
-let wizardChecklist = [];
 let wizardExisting = null; // 再開時に読み込んだ既存データ
 let wizardQuickMode = false; // true: タイトル+感情だけで即保存し、分析は後回しにする
 
@@ -10,7 +9,6 @@ function openWizard(resumeId) {
   wizardReflectionId = resumeId || null;
   wizardExisting = null;
   wizardCauses = [];
-  wizardChecklist = [];
   wizardQuickMode = false;
   navigate('wizard');
   document.getElementById('wizard-quick-hint').style.display = 'none';
@@ -30,7 +28,6 @@ function openQuickWizard() {
   wizardReflectionId = null;
   wizardExisting = null;
   wizardCauses = [];
-  wizardChecklist = [];
   wizardQuickMode = true;
   navigate('wizard');
   document.getElementById('wizard-quick-hint').style.display = 'block';
@@ -59,7 +56,6 @@ function goToWizardStep(step) {
 
 // ── STEP 1: 基本情報 ──
 let wizardEmotion = 3;
-let wizardImportance = 'medium';
 
 function renderWizardStep1() {
   const categoriesHtml = categoriesCache
@@ -72,9 +68,6 @@ function renderWizardStep1() {
 
   wizardEmotion = wizardExisting?.emotion ?? 3;
   renderEmotionPicker();
-
-  wizardImportance = wizardExisting?.importance ?? 'medium';
-  updateChipSelection('wizard-importance-chips', wizardImportance);
 
   document.getElementById('wizard-title-input').value = wizardExisting?.title ?? '';
   document.getElementById('wizard-detail-input').value = wizardExisting?.detail ?? '';
@@ -107,10 +100,6 @@ function updateChipSelection(containerId, value) {
 }
 
 document.addEventListener('click', (e) => {
-  if (e.target.closest('#wizard-importance-chips .chip')) {
-    wizardImportance = e.target.closest('.chip').dataset.value;
-    updateChipSelection('wizard-importance-chips', wizardImportance);
-  }
   if (e.target.closest('#wizard-priority-chips .chip')) {
     updateChipSelection('wizard-priority-chips', e.target.closest('.chip').dataset.value);
   }
@@ -128,7 +117,6 @@ async function submitWizardStep1() {
     detail: document.getElementById('wizard-detail-input').value.trim(),
     categoryId,
     emotion: wizardEmotion,
-    importance: wizardImportance,
     occurredAt: new Date(),
   };
 
@@ -180,34 +168,6 @@ function renderWizardStep3() {
   document.getElementById('wizard-duedate-input').value = dateKey(due);
   const priority = wizardExisting?.improvement?.priority ?? 'medium';
   updateChipSelection('wizard-priority-chips', priority);
-  wizardChecklist = wizardExisting?.improvement?.checklist ?? [];
-  renderWizardChecklist();
-}
-
-function renderWizardChecklist() {
-  document.getElementById('wizard-checklist-list').innerHTML = wizardChecklist
-    .map(
-      (item, i) => `
-      <div class="checklist-item ${item.done ? 'done' : ''}" onclick="toggleWizardChecklistItem(${i})">
-        <div class="checklist-box ${item.done ? 'checked' : ''}"></div>
-        <span>${escapeHtml(item.text)}</span>
-      </div>`,
-    )
-    .join('');
-}
-
-function toggleWizardChecklistItem(index) {
-  wizardChecklist[index].done = !wizardChecklist[index].done;
-  renderWizardChecklist();
-}
-
-function addWizardChecklistItem() {
-  const input = document.getElementById('wizard-checklist-new-input');
-  const text = input.value.trim();
-  if (!text) return;
-  wizardChecklist.push({ text, done: false });
-  input.value = '';
-  renderWizardChecklist();
 }
 
 async function submitWizardStep3() {
@@ -220,7 +180,6 @@ async function submitWizardStep3() {
     action,
     dueDate,
     priority,
-    checklist: wizardChecklist,
   });
   showToast('改善策を保存しました');
   closeWizard();

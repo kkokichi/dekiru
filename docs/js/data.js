@@ -143,6 +143,15 @@ async function recordCheckin(uid, id, date, done, reason) {
   });
 }
 
+async function updateLesson(uid, id, lesson) {
+  await reflectionsCol(uid)
+    .doc(id)
+    .update({
+      lesson: lesson || null,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+}
+
 async function markImprovementAchieved(uid, id, lesson) {
   await reflectionsCol(uid)
     .doc(id)
