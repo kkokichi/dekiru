@@ -11,7 +11,7 @@ async function renderPractice(id) {
   document.getElementById('practice-action-text').textContent = r.improvement?.action ?? '';
   document.getElementById('practice-choice-row').style.display = 'flex';
   document.getElementById('practice-due-date-row').style.display = 'none';
-  document.getElementById('practice-new-due-input').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('practice-new-due-input').value = dateKey(new Date());
 }
 
 async function markPracticeDone() {

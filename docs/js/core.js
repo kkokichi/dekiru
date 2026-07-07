@@ -40,6 +40,14 @@ function formatDateTime(date) {
   return `${formatDate(date)} ${date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
+// ローカル日付のYYYY-MM-DDキー。toISOString()はUTC変換で日付がずれるため使わない
+function dateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 const EMOTION_EMOJI = ['😞', '🙁', '😐', '🙂', '😄'];
 
 const CAUSE_LABELS = {

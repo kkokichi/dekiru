@@ -4,13 +4,16 @@ let wizardReflectionId = null;
 let wizardCauses = [];
 let wizardChecklist = [];
 let wizardExisting = null; // 再開時に読み込んだ既存データ
+let wizardQuickMode = false; // true: タイトル+感情だけで即保存し、分析は後回しにする
 
 function openWizard(resumeId) {
   wizardReflectionId = resumeId || null;
   wizardExisting = null;
   wizardCauses = [];
   wizardChecklist = [];
+  wizardQuickMode = false;
   navigate('wizard');
+  document.getElementById('wizard-quick-hint').style.display = 'none';
 
   if (resumeId) {
     getReflection(currentUser.uid, resumeId).then((r) => {
@@ -21,6 +24,17 @@ function openWizard(resumeId) {
   } else {
     goToWizardStep(1);
   }
+}
+
+function openQuickWizard() {
+  wizardReflectionId = null;
+  wizardExisting = null;
+  wizardCauses = [];
+  wizardChecklist = [];
+  wizardQuickMode = true;
+  navigate('wizard');
+  document.getElementById('wizard-quick-hint').style.display = 'block';
+  goToWizardStep(1);
 }
 
 function closeWizard() {
@@ -106,7 +120,8 @@ document.addEventListener('click', (e) => {
 async function submitWizardStep1() {
   const title = document.getElementById('wizard-title-input').value.trim();
   if (!title) return showToast('タイトルを入力してください');
-  const categoryId = document.querySelector('#wizard-category-chips .chip.active')?.dataset.category;
+  let categoryId = document.querySelector('#wizard-category-chips .chip.active')?.dataset.category;
+  if (!categoryId && wizardQuickMode) categoryId = categoriesCache[categoriesCache.length - 1]?.id;
   if (!categoryId) return showToast('カテゴリを選択してください');
 
   const input = {
@@ -120,6 +135,13 @@ async function submitWizardStep1() {
 
   const id = await createReflection(currentUser.uid, input);
   wizardReflectionId = id;
+
+  if (wizardQuickMode) {
+    showToast('記録しました。原因分析はいつでも詳細画面から続けられます');
+    navigate('home');
+    renderHome();
+    return;
+  }
   goToWizardStep(2);
 }
 
@@ -200,7 +222,7 @@ function renderWizardStep4() {
   document.getElementById('wizard-action-input').value =
     wizardAdoptedAction ?? wizardExisting?.improvement?.action ?? '';
   const due = wizardExisting?.improvement?.dueDate ?? new Date();
-  document.getElementById('wizard-duedate-input').value = due.toISOString().slice(0, 10);
+  document.getElementById('wizard-duedate-input').value = dateKey(due);
   const priority = wizardExisting?.improvement?.priority ?? 'medium';
   updateChipSelection('wizard-priority-chips', priority);
   wizardChecklist = wizardExisting?.improvement?.checklist ?? [];

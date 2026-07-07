@@ -367,6 +367,77 @@ h3 {
   margin-bottom: 24px;
 }
 
+/* ── クイック入力ボタン ── */
+.quick-entry-btn {
+  margin-bottom: 20px;
+  text-align: left;
+  justify-content: flex-start;
+  font-weight: 600;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+/* ── 習慣カレンダー ── */
+.calendar-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-dow {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  padding-bottom: 4px;
+}
+.calendar-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  gap: 1px;
+}
+.calendar-cell.empty {
+  background: transparent;
+}
+.calendar-cell.today {
+  outline: 1.5px solid var(--accent);
+  outline-offset: -1.5px;
+}
+.calendar-daynum {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+.calendar-mark {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+.calendar-cell.mark-success {
+  background: var(--accent-soft);
+}
+.calendar-cell.mark-success .calendar-mark {
+  color: var(--accent-strong);
+}
+.calendar-cell.mark-fail {
+  background: var(--danger-soft);
+}
+.calendar-cell.mark-fail .calendar-mark {
+  color: var(--danger);
+}
+.calendar-cell.mark-pending .calendar-mark {
+  color: var(--text-tertiary);
+}
+
 /* ── ナビゲーション ── */
 .tabbar {
   display: flex;
