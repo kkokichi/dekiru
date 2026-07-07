@@ -6,10 +6,16 @@ let activeReflectionId = null; // detail/practice/effect/wizard(再開)が参照
 // ── iOS Safari対策 ──
 // キーボードが開くとiOSはフォーカス中の入力欄を見せるためにページ全体を
 // 押し上げる。#appの高さを可視領域（visualViewport）に合わせて縮めることで
-// 「押し上げる理由」自体をなくし、入力欄は画面内スクロールで見せる
+// 「押し上げる理由」自体をなくし、入力欄は画面内スクロールで見せる。
+// ただしvisualViewportはツールバーの伸縮などキーボード以外でも変化するため、
+// キーボードが開いている時（可視領域が大きく縮んだ時）だけ高さを固定し、
+// それ以外はCSSの100dvhに任せる（固定したままだと下端に隙間ができて浮く）
 if (window.visualViewport) {
   const syncViewportHeight = () => {
-    document.getElementById('app').style.height = `${window.visualViewport.height}px`;
+    const keyboardOpen = window.innerHeight - window.visualViewport.height > 60;
+    document.getElementById('app').style.height = keyboardOpen
+      ? `${window.visualViewport.height}px`
+      : '';
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
