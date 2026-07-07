@@ -40,6 +40,7 @@ function closeWizard() {
 
 function goToWizardStep(step) {
   wizardStep = step;
+  document.getElementById('wizard-recur').style.display = 'none';
   document.querySelectorAll('.wizard-step').forEach((el) => el.classList.remove('active'));
   document.getElementById('wizard-step-' + step).classList.add('active');
   document.querySelectorAll('.wizard-progress-seg').forEach((seg, i) => {
@@ -123,6 +124,15 @@ async function submitWizardStep1() {
   const id = await createReflection(currentUser.uid, input);
   wizardReflectionId = id;
 
+  const similar = await findSimilarReflections(title, id);
+  if (similar.length > 0) {
+    showRecurrenceChooser(similar);
+    return;
+  }
+  proceedAfterStep1();
+}
+
+function proceedAfterStep1() {
   if (wizardQuickMode) {
     showToast('記録しました。原因分析はいつでも詳細画面から続けられます');
     navigate('home');
@@ -130,6 +140,80 @@ async function submitWizardStep1() {
     return;
   }
   goToWizardStep(2);
+}
+
+// ── 再発の確認 ──
+// タイトルの文字2-gramの重なり（Dice係数）で過去の似た振り返りを探す
+function titleBigrams(s) {
+  const t = s.replace(/\s+/g, '');
+  const grams = [];
+  for (let i = 0; i < t.length - 1; i++) grams.push(t.slice(i, i + 2));
+  return grams;
+}
+
+function titleSimilarity(a, b) {
+  const ga = titleBigrams(a);
+  const gb = titleBigrams(b);
+  if (ga.length === 0 || gb.length === 0) return 0;
+  const pool = [...gb];
+  let hit = 0;
+  ga.forEach((g) => {
+    const i = pool.indexOf(g);
+    if (i >= 0) {
+      hit++;
+      pool.splice(i, 1);
+    }
+  });
+  return (2 * hit) / (ga.length + gb.length);
+}
+
+async function findSimilarReflections(title, excludeId) {
+  const all = await listReflections(currentUser.uid);
+  return all
+    .filter((r) => r.id !== excludeId)
+    .map((r) => ({ r, score: titleSimilarity(title, r.title) }))
+    .filter((x) => x.score >= 0.25)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((x) => x.r);
+}
+
+function showRecurrenceChooser(similar) {
+  document.querySelectorAll('.wizard-step').forEach((el) => el.classList.remove('active'));
+  document.getElementById('wizard-title').textContent = '再発の確認';
+  document.getElementById('wizard-step-label').textContent = '';
+  document.getElementById('wizard-recur-list').innerHTML = similar
+    .map(
+      (r) => `
+      <div class="reflection-card" onclick="selectRecurrence('${r.id}')">
+        <div class="reflection-body">
+          <div class="reflection-title">${escapeHtml(r.title)}</div>
+          <div class="reflection-meta">
+            <span class="tag-category">${escapeHtml(categoryName(r.categoryId))}</span>
+            <span class="pill ${STATUS_CLASS[r.status]}">${STATUS_LABELS[r.status]}</span>
+            <span class="pill pill-neutral">${formatShortDate(r.occurredAt)}</span>
+          </div>
+        </div>
+      </div>`,
+    )
+    .join('');
+  document.getElementById('wizard-recur').style.display = 'block';
+}
+
+function hideRecurrenceChooser() {
+  document.getElementById('wizard-recur').style.display = 'none';
+}
+
+async function selectRecurrence(originalId) {
+  await setRecurrence(currentUser.uid, wizardReflectionId, originalId);
+  hideRecurrenceChooser();
+  showToast('再発として記録しました');
+  proceedAfterStep1();
+}
+
+function skipRecurrence() {
+  hideRecurrenceChooser();
+  proceedAfterStep1();
 }
 
 // ── STEP 2: 原因分析 ──

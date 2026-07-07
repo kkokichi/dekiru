@@ -15,6 +15,17 @@ async function renderDetail(id) {
     priorityEl.style.display = 'none';
   }
 
+  const recEl = document.getElementById('detail-recurrence');
+  if (r.recurrenceOf) {
+    const original = await getReflection(currentUser.uid, r.recurrenceOf);
+    recEl.style.display = 'block';
+    recEl.textContent = `⟳ 「${original?.title ?? '削除済み'}」の再発`;
+    recEl.onclick = original ? () => openDetail(original.id) : null;
+  } else {
+    recEl.style.display = 'none';
+    recEl.onclick = null;
+  }
+
   document.getElementById('detail-timeline').innerHTML = buildTimelineHtml(r);
   document.getElementById('detail-lesson').innerHTML = r.lesson
     ? `<div class="section-title" style="margin-top: 24px">教訓</div><div class="card lesson-card">${escapeHtml(r.lesson)}</div>`

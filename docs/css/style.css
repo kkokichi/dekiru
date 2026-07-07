@@ -380,6 +380,67 @@ h3 {
   margin-bottom: 24px;
 }
 
+/* ── リマインダーバナー ── */
+.reminder-banner {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* ── 再発リンク ── */
+.recurrence-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+/* ── リマインダー設定 ── */
+.reminder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  min-height: 36px;
+}
+.reminder-row input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.reminder-row input[type='time'] {
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: inherit;
+}
+.reminder-note {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin: 8px 0 0;
+}
+
+/* ── エクスポート ── */
+.export-textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-control);
+  padding: 12px 14px;
+  font-size: 11.5px;
+  color: var(--text);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  resize: none;
+}
+
 /* ── クイック入力ボタン ── */
 .quick-entry-btn {
   margin-bottom: 20px;

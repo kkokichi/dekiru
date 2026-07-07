@@ -6,6 +6,7 @@ async function renderGrowth() {
   document.getElementById('growth-total').textContent = reflections.length;
   document.getElementById('growth-done').textContent = doneList.length;
   document.getElementById('growth-lessons').textContent = reflections.filter((r) => r.lesson).length;
+  document.getElementById('growth-recur').textContent = reflections.filter((r) => r.recurrenceOf).length;
 
   renderMonthlyChart(doneList);
   renderCategoryShare(reflections);

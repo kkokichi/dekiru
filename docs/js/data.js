@@ -95,6 +95,7 @@ async function createReflection(uid, input) {
     checkins: [],
     achievedAt: null,
     lesson: null,
+    recurrenceOf: input.recurrenceOf ?? null,
     status: 'recorded',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -141,6 +142,15 @@ async function recordCheckin(uid, id, date, done, reason) {
     status: data.status === 'planned' ? 'in_progress' : data.status,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
+}
+
+async function setRecurrence(uid, id, originalId) {
+  await reflectionsCol(uid)
+    .doc(id)
+    .update({
+      recurrenceOf: originalId,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 }
 
 async function updateLesson(uid, id, lesson) {

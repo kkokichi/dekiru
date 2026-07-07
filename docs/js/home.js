@@ -32,6 +32,8 @@ async function renderHome() {
       ? '<div class="empty-state">継続中の改善策はありません</div>'
       : sorted.map((r) => todayCheckinCardHtml(r, today)).join('');
 
+  renderReminderBanner(sorted, today);
+
   const recentEl = document.getElementById('home-recent');
   const recentSlice = recentFailures.slice(0, 3);
   recentEl.innerHTML =
@@ -42,6 +44,24 @@ async function renderHome() {
 
 function onAuthReady() {
   renderHome();
+  scheduleReminderTimer();
+}
+
+// リマインダー時刻を過ぎても未チェックの改善策があれば、ホームに知らせる
+function renderReminderBanner(activeReflections, today) {
+  const banner = document.getElementById('home-reminder-banner');
+  const reminder = getReminderSetting();
+  const now = new Date();
+  const nowHM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const uncheckedCount = activeReflections.filter(
+    (r) => !r.checkins.some((c) => c.date === today),
+  ).length;
+  if (reminder.enabled && nowHM >= reminder.time && uncheckedCount > 0) {
+    banner.style.display = 'block';
+    banner.textContent = `⏰ 今日のチェックがまだ${uncheckedCount}件あります`;
+  } else {
+    banner.style.display = 'none';
+  }
 }
 
 function todayCheckinCardHtml(r, today) {

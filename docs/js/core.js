@@ -4,13 +4,25 @@ let prevScreen = 'home';
 let activeReflectionId = null; // detail/practice/effect/wizard(再開)が参照する対象ID
 
 // ── iOS Safari対策 ──
-// 入力欄のフォーカスでキーボードが開いた後、閉じてもページがずれたままになり
-// タップが効かなくなる不具合がある。visualViewportの変化（キーボード開閉）の
-// たびに強制的にスクロール位置を0に戻し、ずれを解消する
+// キーボードが開くとiOSはフォーカス中の入力欄を見せるためにページ全体を
+// 押し上げる。#appの高さを可視領域（visualViewport）に合わせて縮めることで
+// 「押し上げる理由」自体をなくし、入力欄は画面内スクロールで見せる
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => window.scrollTo(0, 0));
-  window.visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0));
+  const syncViewportHeight = () => {
+    document.getElementById('app').style.height = `${window.visualViewport.height}px`;
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+  window.visualViewport.addEventListener('resize', syncViewportHeight);
+  window.visualViewport.addEventListener('scroll', syncViewportHeight);
 }
+// キーボード表示後、入力欄が隠れていたら画面内スクロールで見せる
+document.addEventListener('focusin', (e) => {
+  if (e.target.matches('input, textarea')) {
+    setTimeout(() => e.target.scrollIntoView({ block: 'center' }), 300);
+  }
+});
 document.addEventListener(
   'blur',
   (e) => {

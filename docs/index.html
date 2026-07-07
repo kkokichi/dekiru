@@ -64,6 +64,7 @@
         <button type="button" class="btn btn-secondary quick-entry-btn" onclick="openQuickWizard()">
           今日、うまくいかなかったことは？
         </button>
+        <div id="home-reminder-banner" class="reminder-banner" style="display: none"></div>
         <div class="stat-row">
           <div class="stat-card">
             <div class="num" id="home-streak">—</div>
@@ -115,6 +116,12 @@
             <div class="lbl">残した教訓</div>
           </div>
         </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="growth-recur">—</div>
+            <div class="lbl">再発した失敗</div>
+          </div>
+        </div>
         <div class="home-section">
           <div class="section-title">月ごとの改善数（直近6ヶ月）</div>
           <div class="card">
@@ -156,11 +163,12 @@
       <div class="screen" id="detail">
         <button type="button" class="back-btn" onclick="goBack()">‹ 戻る</button>
         <h2 id="detail-title" style="font-size: 20px; margin-bottom: 8px"></h2>
-        <div class="reflection-meta" style="margin-bottom: 20px">
+        <div class="reflection-meta" style="margin-bottom: 8px">
           <span class="tag-category" id="detail-category"></span>
           <span class="pill" id="detail-status"></span>
           <span class="pill pill-neutral" id="detail-priority"></span>
         </div>
+        <div id="detail-recurrence" class="recurrence-link" style="display: none"></div>
         <div id="detail-timeline"></div>
         <div id="detail-lesson"></div>
         <div id="detail-checkin-history"></div>
@@ -229,6 +237,24 @@
         <div class="section-title">アカウント</div>
         <div id="settings-name" style="font-size: 14.5px; margin-bottom: 2px"></div>
         <div id="settings-email" style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 24px"></div>
+        <div class="section-title">リマインダー</div>
+        <div class="card" style="margin-bottom: 24px">
+          <div class="reminder-row">
+            <span>毎日のチェックを通知</span>
+            <input type="checkbox" id="reminder-toggle" onchange="onReminderToggle(this.checked)" />
+          </div>
+          <div class="reminder-row" id="reminder-time-row">
+            <span>時刻</span>
+            <input type="time" id="reminder-time" value="21:00" onchange="onReminderTimeChange(this.value)" />
+          </div>
+          <p class="reminder-note">
+            通知はアプリを開いている間に表示されます。ホーム画面にも未チェックのお知らせが出ます。
+          </p>
+        </div>
+        <div class="section-title">データ</div>
+        <button type="button" class="btn btn-secondary" style="margin-bottom: 24px" onclick="openExport()">
+          データをエクスポート（AI分析用）
+        </button>
         <div class="section-title">表示テーマ</div>
         <div id="settings-theme-options">
           <div class="theme-option" data-theme="system" onclick="changeTheme('system')">
@@ -259,6 +285,14 @@
         </div>
         <div id="wizard-step-label"></div>
         <div id="wizard-title"></div>
+
+        <div id="wizard-recur" style="display: none">
+          <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 0">
+            似た振り返りが見つかりました。同じ失敗の再発ですか？<br />該当するものをタップしてください。
+          </p>
+          <div id="wizard-recur-list" style="margin-bottom: 16px"></div>
+          <button type="button" class="btn btn-secondary" onclick="skipRecurrence()">新しい失敗として続ける</button>
+        </div>
 
         <div class="wizard-step" id="wizard-step-1">
           <div class="card" id="wizard-quick-hint" style="display: none; margin-bottom: 16px">
@@ -316,6 +350,22 @@
         </div>
       </div>
 
+      <!-- ══ EXPORT（AI分析用） ══ -->
+      <div class="screen" id="export">
+        <button type="button" class="back-btn" onclick="goBack()">‹ 戻る</button>
+        <h2 style="font-size: 19px; margin-bottom: 8px">データエクスポート</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px">
+          全データをAIに分析してもらいやすい形式でまとめました。コピーしてChatGPTやClaudeに貼り付けると、失敗の傾向や改善のヒントを分析してもらえます。
+        </p>
+        <textarea id="export-text" readonly rows="14" class="export-textarea"></textarea>
+        <button type="button" class="btn btn-primary" style="margin-top: 12px" onclick="copyExport()">
+          コピーする
+        </button>
+        <button type="button" class="btn btn-secondary" style="margin-top: 8px" onclick="downloadExport()">
+          ファイルとして保存（.md）
+        </button>
+      </div>
+
       <!-- ══ TAB BAR ══ -->
       <div class="tabbar">
         <button type="button" class="nav-item active" id="nav-home" onclick="navigate('home'); renderHome()">
@@ -354,6 +404,7 @@
     <script src="js/detail.js"></script>
     <script src="js/checkin.js"></script>
     <script src="js/lesson.js"></script>
+    <script src="js/export.js"></script>
     <script src="js/settings.js"></script>
   </body>
 </html>
