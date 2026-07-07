@@ -10,6 +10,8 @@ async function renderHome() {
 
   renderHabitCalendar(allReflections);
 
+  const streak = calcStreak(allReflections);
+  document.getElementById('home-streak').textContent = streak > 0 ? `${streak}日` : '—';
   document.getElementById('home-improvement-rate').textContent =
     stats.checkinRate != null ? `${Math.round(stats.checkinRate * 100)}%` : '—';
   document.getElementById('home-done-count').textContent = stats.checkinCount;
@@ -60,6 +62,21 @@ function todayCheckinCardHtml(r, today) {
         </div>
       </div>
     </div>`;
+}
+
+// チェックを記録した日が今日（または昨日）から何日連続しているか。
+// 今日まだ記録していなくても、昨日まで続いていれば連続は途切れていない扱いにする
+function calcStreak(reflections) {
+  const days = new Set();
+  reflections.forEach((r) => r.checkins.forEach((c) => days.add(c.date)));
+  const d = new Date();
+  if (!days.has(dateKey(d))) d.setDate(d.getDate() - 1);
+  let streak = 0;
+  while (days.has(dateKey(d))) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
 }
 
 // ── 習慣カレンダー（●できた / ×できなかった） ──
