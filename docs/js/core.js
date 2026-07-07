@@ -10,12 +10,23 @@ let activeReflectionId = null; // detail/practice/effect/wizard(再開)が参照
 // ただしvisualViewportはツールバーの伸縮などキーボード以外でも変化するため、
 // キーボードが開いている時（可視領域が大きく縮んだ時）だけ高さを固定し、
 // それ以外はCSSの100dvhに任せる（固定したままだと下端に隙間ができて浮く）
+// アプリの高さはCSSのdvhではなくJSの実測値を正とする。
+// Safariはツールバーの伸縮で見える高さが変わり、dvhとfixedボディの
+// 組み合わせでは下端に隙間ができる（浮く）端末があるため
+const setAppHeight = () => {
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+};
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', setAppHeight);
+setAppHeight();
+
 if (window.visualViewport) {
   const syncViewportHeight = () => {
     const keyboardOpen = window.innerHeight - window.visualViewport.height > 60;
     document.getElementById('app').style.height = keyboardOpen
       ? `${window.visualViewport.height}px`
       : '';
+    setAppHeight();
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;

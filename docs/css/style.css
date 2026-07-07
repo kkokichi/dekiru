@@ -67,6 +67,8 @@ body {
      ページ全体がずれて操作不能になる（触れなくなる）不具合を防ぐ */
   overflow: hidden;
   position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   overscroll-behavior: none;
 }
@@ -81,7 +83,10 @@ body {
   max-width: 480px;
   margin: 0 auto;
   height: 100vh;
-  height: 100dvh; /* iOS Safariのツールバー分の誤差を補正（対応ブラウザのみ） */
+  height: 100dvh;
+  /* Safariのdvhとfixedボディの組み合わせは端末差が大きいため、
+     JSが実測したwindow.innerHeightを最優先で使う（core.jsで設定） */
+  height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -537,7 +542,8 @@ h3 {
   align-items: center;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  height: 64px;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   flex: none;
   position: relative;
 }
