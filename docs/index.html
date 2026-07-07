@@ -1,49 +1,316 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Reflect</title>
 
-    <!-- Safari: ホーム画面に追加してWebアプリ(スタンドアロン)として開くための設定 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Reflect">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#14160f" media="(prefers-color-scheme: dark)">
-    <link rel="apple-touch-icon" href="/dekiru/apple-touch-icon.png">
-    <link rel="manifest" href="/dekiru/manifest.json">
-
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
-    </style>
-  <link rel="icon" href="/dekiru/favicon.ico"/><link rel="preload" href="/dekiru/_expo/static/css/web-8f211811c6f87c7a7da12cf4cf867725.css" as="style">
-<link rel="stylesheet" href="/dekiru/_expo/static/css/web-8f211811c6f87c7a7da12cf4cf867725.css"></head>
-
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Reflect" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14160f" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="icons/icon.png" />
+    <link rel="icon" href="icons/favicon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
   <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="/dekiru/_expo/static/js/web/entry-8958fb833117fcd896ca366b8caa77d9.js" defer></script>
-</body>
+    <div id="app">
+      <!-- ══ AUTH ══ -->
+      <div class="screen active" id="auth">
+        <div class="auth-brand">
+          <h1>Reflect</h1>
+          <p>「できなかった」を「できる」に変える</p>
+        </div>
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">ログイン</div>
+          <div class="auth-tab" id="auth-tab-signup" onclick="switchAuthTab('signup')">新規登録</div>
+        </div>
+        <form id="login-form" style="display: flex; flex-direction: column" onsubmit="handleLogin(event)">
+          <div class="field">
+            <label>メールアドレス</label>
+            <input type="email" id="login-email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label>パスワード</label>
+            <input type="password" id="login-password" autocomplete="current-password" required />
+          </div>
+          <div class="error-text" id="login-error"></div>
+          <button type="submit" class="btn btn-primary auth-submit">ログイン</button>
+        </form>
+        <form
+          id="signup-form"
+          style="display: none; flex-direction: column"
+          onsubmit="handleSignup(event)"
+        >
+          <div class="field">
+            <label>メールアドレス</label>
+            <input type="email" id="signup-email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label>パスワード（8文字以上）</label>
+            <input type="password" id="signup-password" autocomplete="new-password" minlength="8" required />
+          </div>
+          <div class="error-text" id="signup-error"></div>
+          <button type="submit" class="btn btn-primary auth-submit">アカウントを作成</button>
+        </form>
+      </div>
+
+      <!-- ══ HOME ══ -->
+      <div class="screen" id="home">
+        <div class="home-greet">おかえりなさい</div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="home-improvement-rate">—</div>
+            <div class="lbl">今週の改善率</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="home-done-count">—</div>
+            <div class="lbl">今週完了した振り返り</div>
+          </div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">未対応の改善策</div>
+          <div id="home-unresolved"></div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">最近の失敗</div>
+          <div id="home-recent"></div>
+        </div>
+      </div>
+
+      <!-- ══ LIST ══ -->
+      <div class="screen" id="list">
+        <div class="search-bar">
+          🔍
+          <input
+            type="text"
+            id="list-search-input"
+            placeholder="振り返りを検索"
+            oninput="renderListResults()"
+          />
+        </div>
+        <div class="chip-scroll" id="list-status-chips"></div>
+        <div class="chip-scroll" id="list-category-chips"></div>
+        <div id="list-results"></div>
+      </div>
+
+      <!-- ══ DETAIL ══ -->
+      <div class="screen" id="detail">
+        <h2 id="detail-title" style="font-size: 20px; margin-bottom: 8px"></h2>
+        <div class="reflection-meta" style="margin-bottom: 20px">
+          <span class="tag-category" id="detail-category"></span>
+          <span class="pill" id="detail-status"></span>
+          <span class="pill pill-neutral" id="detail-priority"></span>
+        </div>
+        <div id="detail-timeline"></div>
+        <button type="button" class="btn btn-primary" id="detail-action-btn" style="margin-top: 20px"></button>
+      </div>
+
+      <!-- ══ PRACTICE ══ -->
+      <div class="screen" id="practice">
+        <div class="eyebrow">実践を記録する</div>
+        <h2 id="practice-action-text" style="font-size: 18px; margin-bottom: 24px"></h2>
+        <div id="practice-choice-row" style="display: flex; flex-direction: column; gap: 10px">
+          <button type="button" class="btn btn-primary" onclick="markPracticeDone()">実施した</button>
+          <button type="button" class="btn btn-secondary" onclick="showPracticeSkippedForm()">未実施</button>
+        </div>
+        <div id="practice-due-date-row" style="display: none">
+          <div class="field">
+            <label>新しい期限</label>
+            <input type="date" id="practice-new-due-input" />
+          </div>
+          <button type="button" class="btn btn-primary" onclick="markPracticeSkipped()">この期限で保存する</button>
+        </div>
+      </div>
+
+      <!-- ══ EFFECT ══ -->
+      <div class="screen" id="effect">
+        <div class="eyebrow">効果確認</div>
+        <h2 id="effect-question" style="font-size: 18px; margin-bottom: 24px"></h2>
+        <div id="effect-options"></div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="screen" id="settings">
+        <h2 style="font-size: 19px; margin-bottom: 24px">設定</h2>
+        <div class="section-title">アカウント</div>
+        <div id="settings-name" style="font-size: 14.5px; margin-bottom: 2px"></div>
+        <div id="settings-email" style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 24px"></div>
+        <div class="section-title">表示テーマ</div>
+        <div id="settings-theme-options">
+          <div class="theme-option" data-theme="system" onclick="changeTheme('system')">
+            <span>端末の設定に合わせる</span><span class="check">✓</span>
+          </div>
+          <div class="theme-option" data-theme="light" onclick="changeTheme('light')">
+            <span>ライト</span><span class="check">✓</span>
+          </div>
+          <div class="theme-option" data-theme="dark" onclick="changeTheme('dark')">
+            <span>ダーク</span><span class="check">✓</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" style="margin-top: 20px" onclick="handleLogout()">
+          ログアウト
+        </button>
+        <div class="settings-danger" onclick="confirmDeleteAccount()">アカウントを削除する</div>
+      </div>
+
+      <!-- ══ WIZARD ══ -->
+      <div class="screen" id="wizard">
+        <div class="wizard-header">
+          <div class="wizard-progress">
+            <div class="wizard-progress-seg"></div>
+            <div class="wizard-progress-seg"></div>
+            <div class="wizard-progress-seg"></div>
+            <div class="wizard-progress-seg"></div>
+          </div>
+          <button type="button" class="wizard-close" onclick="closeWizard()">×</button>
+        </div>
+        <div id="wizard-step-label"></div>
+        <div id="wizard-title"></div>
+
+        <div class="wizard-step" id="wizard-step-1">
+          <div class="field">
+            <label>タイトル</label>
+            <input type="text" id="wizard-title-input" placeholder="例: 会議で発言できなかった" />
+          </div>
+          <div class="field">
+            <label>詳細</label>
+            <textarea id="wizard-detail-input" rows="3" placeholder="状況を詳しく書いてみましょう"></textarea>
+          </div>
+          <div class="field">
+            <label>カテゴリ</label>
+            <div class="chip-row" id="wizard-category-chips"></div>
+          </div>
+          <div class="field">
+            <label>感情</label>
+            <div class="emo-picker" id="wizard-emotion-picker"></div>
+          </div>
+          <div class="field">
+            <label>重要度</label>
+            <div class="chip-row" id="wizard-importance-chips">
+              <button type="button" class="chip" data-value="low">低</button>
+              <button type="button" class="chip active" data-value="medium">中</button>
+              <button type="button" class="chip" data-value="high">高</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="submitWizardStep1()">次へ</button>
+        </div>
+
+        <div class="wizard-step" id="wizard-step-2">
+          <p style="font-size: 13.5px; color: var(--text-secondary)">
+            あてはまる原因を選んでください（複数選択可）
+          </p>
+          <div class="chip-row" id="wizard-cause-chips" style="margin-bottom: 16px"></div>
+          <div class="field" id="wizard-cause-other-row" style="display: none">
+            <label>その他の内容</label>
+            <input type="text" id="wizard-cause-other-input" placeholder="具体的な原因を入力してください" />
+          </div>
+          <button type="button" class="btn btn-primary" onclick="submitWizardStep2()">次へ（AIに相談する）</button>
+        </div>
+
+        <div class="wizard-step" id="wizard-step-3">
+          <div id="wizard-ai-initial">
+            <p style="font-size: 13.5px; color: var(--text-secondary)">
+              AIが原因の補足・改善策・再発防止策を提案します。
+            </p>
+            <button type="button" class="btn btn-primary" onclick="requestAiSuggestion()" style="margin-bottom: 10px">
+              AIに相談する
+            </button>
+            <button type="button" class="btn btn-ghost" onclick="skipAiSuggestion()">自分で入力する</button>
+          </div>
+          <div id="wizard-ai-loading" style="display: none; text-align: center; padding: 40px 0">
+            考えています…
+          </div>
+          <div id="wizard-ai-error" style="display: none">
+            <p style="font-size: 13px; color: var(--danger); text-align: center">
+              AI提案を取得できませんでした。しばらくしてから再度お試しいただくか、自分で入力して進めてください。
+            </p>
+            <button type="button" class="btn btn-primary" onclick="skipAiSuggestion()">自分で入力する</button>
+          </div>
+          <div id="wizard-ai-result" style="display: none">
+            <div class="ai-card">
+              <h5>原因の補足</h5>
+              <p id="wizard-ai-cause-supplement"></p>
+            </div>
+            <div class="ai-card">
+              <h5>改善策の提案</h5>
+              <div id="wizard-ai-improvements"></div>
+            </div>
+            <div class="ai-card">
+              <h5>再発防止策</h5>
+              <p id="wizard-ai-prevention"></p>
+            </div>
+            <button type="button" class="btn btn-ghost" onclick="skipAiSuggestion()">自分で入力する</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" id="wizard-step-4">
+          <div class="field">
+            <label>次回やること</label>
+            <input type="text" id="wizard-action-input" placeholder="例: 会議前に発言メモを3行作る" />
+          </div>
+          <div class="field">
+            <label>期限</label>
+            <input type="date" id="wizard-duedate-input" />
+          </div>
+          <div class="field">
+            <label>優先度</label>
+            <div class="chip-row" id="wizard-priority-chips">
+              <button type="button" class="chip" data-value="low">低</button>
+              <button type="button" class="chip active" data-value="medium">中</button>
+              <button type="button" class="chip" data-value="high">高</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>チェックリスト（任意）</label>
+            <div id="wizard-checklist-list"></div>
+            <div class="checklist-add-row">
+              <input type="text" id="wizard-checklist-new-input" placeholder="項目を追加" />
+              <button type="button" class="btn btn-secondary" onclick="addWizardChecklistItem()">追加</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="submitWizardStep4()">改善策を保存</button>
+        </div>
+      </div>
+
+      <!-- ══ TAB BAR ══ -->
+      <div class="tabbar">
+        <button type="button" class="nav-item active" id="nav-home" onclick="navigate('home'); renderHome()">
+          ホーム
+        </button>
+        <button type="button" class="fab" onclick="openWizard()">+</button>
+        <button type="button" class="nav-item" id="nav-list" onclick="navigate('list'); renderList()">一覧</button>
+        <button
+          type="button"
+          class="nav-item"
+          id="nav-settings"
+          onclick="navigate('settings'); renderSettings()"
+        >
+          設定
+        </button>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Firebase (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/wizard.js"></script>
+    <script src="js/list.js"></script>
+    <script src="js/detail.js"></script>
+    <script src="js/practice.js"></script>
+    <script src="js/effect.js"></script>
+    <script src="js/settings.js"></script>
+  </body>
 </html>
