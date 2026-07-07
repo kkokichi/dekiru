@@ -3,6 +3,24 @@ let currentScreen = 'auth';
 let prevScreen = 'home';
 let activeReflectionId = null; // detail/practice/effect/wizard(再開)が参照する対象ID
 
+// ── iOS Safari対策 ──
+// 入力欄のフォーカスでキーボードが開いた後、閉じてもページがずれたままになり
+// タップが効かなくなる不具合がある。visualViewportの変化（キーボード開閉）の
+// たびに強制的にスクロール位置を0に戻し、ずれを解消する
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => window.scrollTo(0, 0));
+  window.visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0));
+}
+document.addEventListener(
+  'blur',
+  (e) => {
+    if (e.target.matches('input, textarea')) {
+      setTimeout(() => window.scrollTo(0, 0), 50);
+    }
+  },
+  true,
+);
+
 // ── NAVIGATION ──
 const TAB_SCREENS = ['home', 'list', 'settings'];
 

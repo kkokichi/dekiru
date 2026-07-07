@@ -59,19 +59,26 @@ html,
 body {
   height: 100%;
   margin: 0;
+  /* iOS Safari対策: body自体をスクロール不可・固定にする。
+     スクロールは各.screen内だけで行わせることで、キーボードの開閉後に
+     ページ全体がずれて操作不能になる（触れなくなる）不具合を防ぐ */
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
 }
 body {
   background: var(--bg);
   color: var(--text);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Yu Gothic', sans-serif;
-  overscroll-behavior: none;
 }
 
 #app {
   max-width: 480px;
   margin: 0 auto;
   height: 100vh;
+  height: 100dvh; /* iOS Safariのツールバー分の誤差を補正（対応ブラウザのみ） */
   display: flex;
   flex-direction: column;
   position: relative;
