@@ -22,7 +22,7 @@ document.addEventListener(
 );
 
 // ── NAVIGATION ──
-const TAB_SCREENS = ['home', 'list', 'settings'];
+const TAB_SCREENS = ['home', 'growth', 'list', 'settings'];
 
 function navigate(screen) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));

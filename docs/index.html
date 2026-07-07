@@ -96,6 +96,41 @@
         </div>
       </div>
 
+      <!-- ══ GROWTH ══ -->
+      <div class="screen" id="growth">
+        <h2 style="font-size: 19px; margin-bottom: 20px">成長の記録</h2>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="growth-streak">—</div>
+            <div class="lbl">継続日数</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="growth-total">—</div>
+            <div class="lbl">振り返り数</div>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="growth-done">—</div>
+            <div class="lbl">改善を完了</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="growth-lessons">—</div>
+            <div class="lbl">残した教訓</div>
+          </div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">月ごとの改善数（直近6ヶ月）</div>
+          <div class="card">
+            <div class="growth-chart" id="growth-monthly"></div>
+          </div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">カテゴリ別の振り返り</div>
+          <div class="card" id="growth-categories"></div>
+        </div>
+      </div>
+
       <!-- ══ LIST ══ -->
       <div class="screen" id="list">
         <div class="list-view-toggle">
@@ -331,6 +366,9 @@
         <button type="button" class="nav-item active" id="nav-home" onclick="navigate('home'); renderHome()">
           ホーム
         </button>
+        <button type="button" class="nav-item" id="nav-growth" onclick="navigate('growth'); renderGrowth()">
+          成長
+        </button>
         <button type="button" class="fab" onclick="openWizard()">+</button>
         <button type="button" class="nav-item" id="nav-list" onclick="navigate('list'); renderList()">一覧</button>
         <button
@@ -356,6 +394,7 @@
     <script src="js/data.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/home.js"></script>
+    <script src="js/growth.js"></script>
     <script src="js/wizard.js"></script>
     <script src="js/list.js"></script>
     <script src="js/detail.js"></script>
