@@ -77,6 +77,17 @@ function setListViewMode(mode) {
   renderList();
 }
 
+// 統計カードなど他画面から、フィルタを指定して一覧を開く
+function openListFiltered(opts = {}) {
+  listViewMode = opts.view ?? 'reflections';
+  listStatusFilter = opts.status ?? 'all';
+  listCategoryFilter = opts.category ?? 'all';
+  listDateFilter = opts.date ?? 'all';
+  document.getElementById('list-search-input').value = '';
+  navigate('list');
+  renderList();
+}
+
 function setListStatusFilter(value) {
   listStatusFilter = value;
   renderList();

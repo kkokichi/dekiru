@@ -40,7 +40,7 @@ function renderMonthlyChart(doneList) {
     .join('');
 }
 
-// ── カテゴリ別割合 ──
+// ── カテゴリ別割合（達成／未達成の内訳付き） ──
 function renderCategoryShare(reflections) {
   const el = document.getElementById('growth-categories');
   if (reflections.length === 0) {
@@ -48,22 +48,36 @@ function renderCategoryShare(reflections) {
     return;
   }
   const counts = new Map();
-  reflections.forEach((r) => counts.set(r.categoryId, (counts.get(r.categoryId) ?? 0) + 1));
+  reflections.forEach((r) => {
+    const c = counts.get(r.categoryId) ?? { done: 0, undone: 0 };
+    if (r.status === 'done') c.done++;
+    else c.undone++;
+    counts.set(r.categoryId, c);
+  });
   const rows = [...counts.entries()]
-    .map(([categoryId, count]) => ({ name: categoryName(categoryId), count }))
-    .sort((a, b) => b.count - a.count);
-  const max = rows[0].count;
+    .map(([categoryId, c]) => ({ name: categoryName(categoryId), ...c, total: c.done + c.undone }))
+    .sort((a, b) => b.total - a.total);
+  const max = rows[0].total;
 
-  el.innerHTML = rows
-    .map(
-      (row) => `
+  const legend = `
+    <div class="growth-legend">
+      <span class="growth-legend-item"><span class="growth-swatch done"></span>達成</span>
+      <span class="growth-legend-item"><span class="growth-swatch undone"></span>未達成</span>
+    </div>`;
+
+  el.innerHTML =
+    legend +
+    rows
+      .map(
+        (row) => `
       <div class="growth-cat-row">
         <div class="growth-cat-name">${escapeHtml(row.name)}</div>
         <div class="growth-cat-track">
-          <div class="growth-cat-bar" style="width: ${Math.round((row.count / max) * 100)}%"></div>
+          ${row.done > 0 ? `<div class="growth-cat-seg done" style="width: ${Math.round((row.done / max) * 100)}%"></div>` : ''}
+          ${row.undone > 0 ? `<div class="growth-cat-seg undone" style="width: ${Math.round((row.undone / max) * 100)}%"></div>` : ''}
         </div>
-        <div class="growth-cat-count">${row.count}<span class="growth-cat-pct">（${Math.round((row.count / reflections.length) * 100)}%）</span></div>
+        <div class="growth-cat-count">達成${row.done}/${row.total}<span class="growth-cat-pct">（${Math.round((row.total / reflections.length) * 100)}%）</span></div>
       </div>`,
-    )
-    .join('');
+      )
+      .join('');
 }

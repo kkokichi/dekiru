@@ -48,14 +48,13 @@ function goToWizardStep(step) {
   document.querySelectorAll('.wizard-progress-seg').forEach((seg, i) => {
     seg.classList.toggle('active', i < step);
   });
-  document.getElementById('wizard-step-label').textContent = `STEP ${step} / 4`;
-  const titles = { 1: '基本情報', 2: '原因分析', 3: 'AI提案', 4: '改善策確定' };
+  document.getElementById('wizard-step-label').textContent = `STEP ${step} / 3`;
+  const titles = { 1: '基本情報', 2: '原因分析', 3: '改善策確定' };
   document.getElementById('wizard-title').textContent = titles[step];
 
   if (step === 1) renderWizardStep1();
   if (step === 2) renderWizardStep2();
   if (step === 3) renderWizardStep3();
-  if (step === 4) renderWizardStep4();
 }
 
 // ── STEP 1: 基本情報 ──
@@ -174,53 +173,9 @@ async function submitWizardStep2() {
   goToWizardStep(3);
 }
 
-// ── STEP 3: AI提案 ──
+// ── STEP 3: 改善策確定 ──
 function renderWizardStep3() {
-  document.getElementById('wizard-ai-initial').style.display = 'block';
-  document.getElementById('wizard-ai-loading').style.display = 'none';
-  document.getElementById('wizard-ai-error').style.display = 'none';
-  document.getElementById('wizard-ai-result').style.display = 'none';
-}
-
-async function requestAiSuggestion() {
-  document.getElementById('wizard-ai-initial').style.display = 'none';
-  document.getElementById('wizard-ai-loading').style.display = 'block';
-  document.getElementById('wizard-ai-error').style.display = 'none';
-  try {
-    const callable = cloudFunctions.httpsCallable('generateSuggestion');
-    const response = await callable({ reflectionId: wizardReflectionId });
-    const suggestion = response.data;
-    await saveAiSuggestion(currentUser.uid, wizardReflectionId, suggestion);
-
-    document.getElementById('wizard-ai-cause-supplement').textContent = suggestion.causeSupplement;
-    document.getElementById('wizard-ai-improvements').innerHTML = suggestion.improvements
-      .map((text) => `<button type="button" class="ai-improvement-item" onclick="adoptAiImprovement(this)">${escapeHtml(text)}</button>`)
-      .join('');
-    document.getElementById('wizard-ai-prevention').textContent = suggestion.prevention;
-    document.getElementById('wizard-ai-loading').style.display = 'none';
-    document.getElementById('wizard-ai-result').style.display = 'block';
-  } catch (err) {
-    console.error(err);
-    document.getElementById('wizard-ai-loading').style.display = 'none';
-    document.getElementById('wizard-ai-error').style.display = 'block';
-  }
-}
-
-function adoptAiImprovement(el) {
-  wizardAdoptedAction = el.textContent;
-  goToWizardStep(4);
-}
-
-let wizardAdoptedAction = null;
-
-function skipAiSuggestion() {
-  goToWizardStep(4);
-}
-
-// ── STEP 4: 改善策確定 ──
-function renderWizardStep4() {
-  document.getElementById('wizard-action-input').value =
-    wizardAdoptedAction ?? wizardExisting?.improvement?.action ?? '';
+  document.getElementById('wizard-action-input').value = wizardExisting?.improvement?.action ?? '';
   const due = wizardExisting?.improvement?.dueDate ?? new Date();
   document.getElementById('wizard-duedate-input').value = dateKey(due);
   const priority = wizardExisting?.improvement?.priority ?? 'medium';
@@ -255,7 +210,7 @@ function addWizardChecklistItem() {
   renderWizardChecklist();
 }
 
-async function submitWizardStep4() {
+async function submitWizardStep3() {
   const action = document.getElementById('wizard-action-input').value.trim();
   if (!action) return showToast('次回やることを入力してください');
   const dueDate = new Date(document.getElementById('wizard-duedate-input').value);

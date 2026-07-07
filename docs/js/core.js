@@ -38,7 +38,17 @@ function navigate(screen) {
 }
 
 function goBack() {
-  navigate(['detail', 'checkin', 'lesson'].includes(prevScreen) ? 'home' : prevScreen);
+  if (prevScreen === 'detail' && activeReflectionId) {
+    openDetail(activeReflectionId);
+  } else if (TAB_SCREENS.includes(prevScreen)) {
+    navigate(prevScreen);
+    if (prevScreen === 'home') renderHome();
+    if (prevScreen === 'growth') renderGrowth();
+    if (prevScreen === 'list') renderList();
+  } else {
+    navigate('home');
+    renderHome();
+  }
 }
 
 // ── TOAST ──

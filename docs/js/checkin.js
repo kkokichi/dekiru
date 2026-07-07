@@ -3,6 +3,7 @@ let checkinDone = null;
 
 function openCheckin(id) {
   checkinReflectionId = id;
+  activeReflectionId = id;
   checkinDone = null;
   navigate('checkin');
   renderCheckin(id);

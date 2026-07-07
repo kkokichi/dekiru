@@ -69,11 +69,6 @@ function buildTimelineHtml(r) {
       completed: r.causes.length > 0,
     },
     {
-      label: 'AI提案',
-      content: r.aiSuggestion ? r.aiSuggestion.improvements.join(' / ') : null,
-      completed: !!r.aiSuggestion,
-    },
-    {
       label: '改善策',
       content: r.improvement ? `${r.improvement.action}（期限 ${formatDate(r.improvement.dueDate)}）` : null,
       completed: !!r.improvement,

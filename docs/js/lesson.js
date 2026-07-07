@@ -2,6 +2,7 @@ let lessonReflectionId = null;
 
 function openLessonEntry(id) {
   lessonReflectionId = id;
+  activeReflectionId = id;
   navigate('lesson');
   renderLessonEntry(id);
 }

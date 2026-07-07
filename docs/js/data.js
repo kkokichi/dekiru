@@ -2,7 +2,6 @@
 const CAUSES = ['time', 'preparation', 'knowledge', 'judgement', 'communication', 'other'];
 const DEFAULT_CATEGORIES = ['仕事', '勉強', '健康', '人間関係', '趣味', 'その他'];
 const DEFAULT_CATEGORY_COLORS = ['#2f6f4e', '#4c7fb0', '#b0864c', '#a15b8f', '#5c8f6f', '#9a9f92'];
-const AI_SUGGESTION_DAILY_LIMIT = 5;
 
 // キャッシュ（画面間で使い回す。Firestoreの読み取り回数を減らす）
 let categoriesCache = [];
@@ -78,9 +77,6 @@ function toReflection(doc) {
     occurredAt: data.occurredAt.toDate(),
     createdAt: data.createdAt.toDate(),
     updatedAt: data.updatedAt.toDate(),
-    aiSuggestion: data.aiSuggestion
-      ? { ...data.aiSuggestion, generatedAt: data.aiSuggestion.generatedAt.toDate() }
-      : null,
     improvement: data.improvement
       ? { ...data.improvement, dueDate: data.improvement.dueDate.toDate() }
       : null,
@@ -95,7 +91,6 @@ async function createReflection(uid, input) {
     occurredAt: firebase.firestore.Timestamp.fromDate(input.occurredAt),
     causes: [],
     causeNote: null,
-    aiSuggestion: null,
     improvement: null,
     checkins: [],
     achievedAt: null,
@@ -114,15 +109,6 @@ async function updateCauses(uid, id, causes, causeNote) {
       causes,
       causeNote: causeNote || null,
       status: 'analyzed',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-}
-
-async function saveAiSuggestion(uid, id, suggestion) {
-  await reflectionsCol(uid)
-    .doc(id)
-    .update({
-      aiSuggestion: { ...suggestion, generatedAt: firebase.firestore.Timestamp.now() },
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 }
