@@ -82,11 +82,13 @@ body {
 #app {
   max-width: 480px;
   margin: 0 auto;
-  height: 100vh;
-  height: 100dvh;
-  /* Safariのdvhとfixedボディの組み合わせは端末差が大きいため、
-     JSが実測したwindow.innerHeightを最優先で使う（core.jsで設定） */
-  height: var(--app-height, 100dvh);
+  /* fixedのbody（=ビューポート全体）の100%。dvhやinnerHeightは
+     Safariのモード（ブラウザ/ホーム画面起動）によって実際の画面と
+     ずれることがあるため使わない */
+  height: 100%;
+  /* ホーム画面起動時はステータスバーの下まで描画されるため、
+     セーフエリア分の余白を確保する（ブラウザでは0になる） */
+  padding-top: env(safe-area-inset-top, 0px);
   display: flex;
   flex-direction: column;
   position: relative;
