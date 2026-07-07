@@ -1,6 +1,7 @@
 let listViewMode = 'reflections'; // 'reflections' | 'lessons'
 let listStatusFilter = 'all';
 let listCategoryFilter = 'all';
+let listDateFilter = 'all';
 let listAllReflections = [];
 
 const LIST_STATUS_FILTERS = [
@@ -10,6 +11,31 @@ const LIST_STATUS_FILTERS = [
   { value: 'in_progress', label: '継続中' },
   { value: 'done', label: '完了' },
 ];
+
+const LIST_DATE_FILTERS = [
+  { value: 'all', label: '全期間' },
+  { value: 'today', label: '今日' },
+  { value: 'week', label: '今週' },
+  { value: 'month', label: '今月' },
+  { value: '3months', label: '過去3ヶ月' },
+];
+
+// 絞り込みの起点日。全期間はnull
+function dateFilterStart(value) {
+  const now = new Date();
+  if (value === 'today') {
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }
+  if (value === 'week') return getWeekStart(now);
+  if (value === 'month') return new Date(now.getFullYear(), now.getMonth(), 1);
+  if (value === '3months') {
+    const d = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  return null;
+}
 
 async function renderList() {
   listAllReflections = await listReflections(currentUser.uid);
@@ -33,7 +59,17 @@ async function renderList() {
   ];
   document.getElementById('list-category-chips').innerHTML = categoryChips.join('');
 
+  document.getElementById('list-date-chips').innerHTML = LIST_DATE_FILTERS.map(
+    (f) =>
+      `<button type="button" class="chip-filter ${listDateFilter === f.value ? 'active' : ''}" onclick="setListDateFilter('${f.value}')">${f.label}</button>`,
+  ).join('');
+
   renderListResults();
+}
+
+function setListDateFilter(value) {
+  listDateFilter = value;
+  renderList();
 }
 
 function setListViewMode(mode) {
@@ -53,12 +89,14 @@ function setListCategoryFilter(value) {
 
 function renderListResults() {
   const query = document.getElementById('list-search-input').value.trim().toLowerCase();
+  const dateStart = dateFilterStart(listDateFilter);
   const el = document.getElementById('list-results');
 
   if (listViewMode === 'lessons') {
     const lessons = listAllReflections.filter((r) => {
       if (!r.lesson) return false;
       if (listCategoryFilter !== 'all' && r.categoryId !== listCategoryFilter) return false;
+      if (dateStart && (r.achievedAt ?? r.occurredAt) < dateStart) return false;
       if (query && !r.lesson.toLowerCase().includes(query) && !r.title.toLowerCase().includes(query))
         return false;
       return true;
@@ -73,6 +111,7 @@ function renderListResults() {
   const filtered = listAllReflections.filter((r) => {
     if (listCategoryFilter !== 'all' && r.categoryId !== listCategoryFilter) return false;
     if (listStatusFilter !== 'all' && r.status !== listStatusFilter) return false;
+    if (dateStart && r.occurredAt < dateStart) return false;
     if (query && !r.title.toLowerCase().includes(query)) return false;
     return true;
   });
