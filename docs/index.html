@@ -94,6 +94,14 @@
 
       <!-- ══ LIST ══ -->
       <div class="screen" id="list">
+        <div class="list-view-toggle">
+          <button type="button" class="list-view-tab active" id="list-view-reflections" onclick="setListViewMode('reflections')">
+            振り返り
+          </button>
+          <button type="button" class="list-view-tab" id="list-view-lessons" onclick="setListViewMode('lessons')">
+            教訓
+          </button>
+        </div>
         <div class="search-bar">
           🔍
           <input
@@ -117,6 +125,7 @@
           <span class="pill pill-neutral" id="detail-priority"></span>
         </div>
         <div id="detail-timeline"></div>
+        <div id="detail-lesson"></div>
         <div id="detail-checkin-history"></div>
         <button type="button" class="btn btn-primary" id="detail-action-btn" style="margin-top: 20px"></button>
         <button
@@ -153,6 +162,17 @@
           </div>
           <button type="button" class="btn btn-primary" onclick="saveCheckin()">保存する</button>
         </div>
+      </div>
+
+      <!-- ══ LESSON（達成時の教訓入力） ══ -->
+      <div class="screen" id="lesson">
+        <div class="eyebrow">達成おめでとうございます 🎉</div>
+        <h2 id="lesson-action-text" style="font-size: 18px; margin-bottom: 12px"></h2>
+        <div class="field">
+          <label>今回学んだことを一文で残しましょう（任意）</label>
+          <input type="text" id="lesson-input" placeholder="例: 会議は結論から話す" />
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveLessonAndAchieve()">完了する</button>
       </div>
 
       <!-- ══ SETTINGS ══ -->
@@ -335,6 +355,7 @@
     <script src="js/list.js"></script>
     <script src="js/detail.js"></script>
     <script src="js/checkin.js"></script>
+    <script src="js/lesson.js"></script>
     <script src="js/settings.js"></script>
   </body>
 </html>

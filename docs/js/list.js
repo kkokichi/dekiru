@@ -1,3 +1,4 @@
+let listViewMode = 'reflections'; // 'reflections' | 'lessons'
 let listStatusFilter = 'all';
 let listCategoryFilter = 'all';
 let listAllReflections = [];
@@ -13,7 +14,12 @@ const LIST_STATUS_FILTERS = [
 async function renderList() {
   listAllReflections = await listReflections(currentUser.uid);
 
-  document.getElementById('list-status-chips').innerHTML = LIST_STATUS_FILTERS.map(
+  document.getElementById('list-view-reflections').classList.toggle('active', listViewMode === 'reflections');
+  document.getElementById('list-view-lessons').classList.toggle('active', listViewMode === 'lessons');
+
+  const statusChipsEl = document.getElementById('list-status-chips');
+  statusChipsEl.style.display = listViewMode === 'lessons' ? 'none' : 'flex';
+  statusChipsEl.innerHTML = LIST_STATUS_FILTERS.map(
     (f) =>
       `<button type="button" class="chip-filter ${listStatusFilter === f.value ? 'active' : ''}" onclick="setListStatusFilter('${f.value}')">${f.label}</button>`,
   ).join('');
@@ -30,6 +36,11 @@ async function renderList() {
   renderListResults();
 }
 
+function setListViewMode(mode) {
+  listViewMode = mode;
+  renderList();
+}
+
 function setListStatusFilter(value) {
   listStatusFilter = value;
   renderList();
@@ -42,15 +53,45 @@ function setListCategoryFilter(value) {
 
 function renderListResults() {
   const query = document.getElementById('list-search-input').value.trim().toLowerCase();
+  const el = document.getElementById('list-results');
+
+  if (listViewMode === 'lessons') {
+    const lessons = listAllReflections.filter((r) => {
+      if (!r.lesson) return false;
+      if (listCategoryFilter !== 'all' && r.categoryId !== listCategoryFilter) return false;
+      if (query && !r.lesson.toLowerCase().includes(query) && !r.title.toLowerCase().includes(query))
+        return false;
+      return true;
+    });
+    el.innerHTML =
+      lessons.length === 0
+        ? '<div class="empty-state">まだ教訓がありません。改善策を達成すると、学んだことをここに残せます</div>'
+        : lessons.map(lessonCardHtml).join('');
+    return;
+  }
+
   const filtered = listAllReflections.filter((r) => {
     if (listCategoryFilter !== 'all' && r.categoryId !== listCategoryFilter) return false;
     if (listStatusFilter !== 'all' && r.status !== listStatusFilter) return false;
     if (query && !r.title.toLowerCase().includes(query)) return false;
     return true;
   });
-  const el = document.getElementById('list-results');
   el.innerHTML =
     filtered.length === 0
       ? '<div class="empty-state">条件に一致する振り返りがありません</div>'
       : filtered.map(reflectionCardHtml).join('');
+}
+
+function lessonCardHtml(r) {
+  return `
+    <div class="reflection-card" onclick="openDetail('${r.id}')">
+      <div class="reflection-body">
+        <div class="lesson-text">${escapeHtml(r.lesson)}</div>
+        <div class="reflection-meta">
+          <span class="tag-category">${escapeHtml(categoryName(r.categoryId))}</span>
+          <span class="lesson-source">${escapeHtml(r.title)}${r.achievedAt ? ` ・ ${formatDate(r.achievedAt)}` : ''}</span>
+        </div>
+      </div>
+    </div>
+  `;
 }

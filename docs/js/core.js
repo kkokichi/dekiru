@@ -38,7 +38,7 @@ function navigate(screen) {
 }
 
 function goBack() {
-  navigate(['detail', 'checkin'].includes(prevScreen) ? 'home' : prevScreen);
+  navigate(['detail', 'checkin', 'lesson'].includes(prevScreen) ? 'home' : prevScreen);
 }
 
 // ── TOAST ──

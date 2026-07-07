@@ -16,6 +16,9 @@ async function renderDetail(id) {
   }
 
   document.getElementById('detail-timeline').innerHTML = buildTimelineHtml(r);
+  document.getElementById('detail-lesson').innerHTML = r.lesson
+    ? `<div class="section-title" style="margin-top: 24px">教訓</div><div class="card lesson-card">${escapeHtml(r.lesson)}</div>`
+    : '';
   document.getElementById('detail-checkin-history').innerHTML = buildCheckinHistoryHtml(r);
 
   const actionBtn = document.getElementById('detail-action-btn');
@@ -32,17 +35,11 @@ async function renderDetail(id) {
     actionBtn.onclick = () => openCheckin(r.id);
     if (r.status === 'in_progress') {
       achieveBtn.style.display = 'block';
-      achieveBtn.onclick = () => handleMarkAchieved(r.id);
+      achieveBtn.onclick = () => openLessonEntry(r.id);
     }
   } else {
     actionBtn.style.display = 'none';
   }
-}
-
-async function handleMarkAchieved(id) {
-  await markImprovementAchieved(currentUser.uid, id);
-  showToast('達成として記録しました');
-  renderDetail(id);
 }
 
 function buildCheckinHistoryHtml(r) {

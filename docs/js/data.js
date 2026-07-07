@@ -99,6 +99,7 @@ async function createReflection(uid, input) {
     improvement: null,
     checkins: [],
     achievedAt: null,
+    lesson: null,
     status: 'recorded',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -156,11 +157,12 @@ async function recordCheckin(uid, id, date, done, reason) {
   });
 }
 
-async function markImprovementAchieved(uid, id) {
+async function markImprovementAchieved(uid, id, lesson) {
   await reflectionsCol(uid)
     .doc(id)
     .update({
       status: 'done',
+      lesson: lesson || null,
       achievedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
