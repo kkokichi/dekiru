@@ -38,7 +38,7 @@ function navigate(screen) {
 }
 
 function goBack() {
-  navigate(['detail', 'practice', 'effect'].includes(prevScreen) ? 'home' : prevScreen);
+  navigate(['detail', 'checkin'].includes(prevScreen) ? 'home' : prevScreen);
 }
 
 // ── TOAST ──
@@ -81,7 +81,7 @@ const STATUS_LABELS = {
   recorded: '未分析',
   analyzed: '未対応',
   planned: '未対応',
-  in_progress: '実践報告待ち',
+  in_progress: '継続中',
   done: '完了',
 };
 
@@ -89,15 +89,8 @@ const STATUS_CLASS = {
   recorded: 'status-neutral',
   analyzed: 'status-accent',
   planned: 'status-accent',
-  in_progress: 'status-warn',
+  in_progress: 'status-accent',
   done: 'status-neutral',
-};
-
-const EFFECT_LABELS = {
-  improved: '改善した',
-  slightly_improved: '少し改善した',
-  no_change: '変わらない',
-  worsened: '悪化した',
 };
 
 // ── 共有UIヘルパー ──

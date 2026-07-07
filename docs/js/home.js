@@ -11,8 +11,15 @@ async function renderHome() {
   renderHabitCalendar(allReflections);
 
   document.getElementById('home-improvement-rate').textContent =
-    stats.improvementRate != null ? `${Math.round(stats.improvementRate * 100)}%` : '—';
-  document.getElementById('home-done-count').textContent = stats.doneCount;
+    stats.checkinRate != null ? `${Math.round(stats.checkinRate * 100)}%` : '—';
+  document.getElementById('home-done-count').textContent = stats.checkinCount;
+
+  const today = dateKey(new Date());
+  const todayEl = document.getElementById('home-today-checkins');
+  todayEl.innerHTML =
+    unresolved.length === 0
+      ? '<div class="empty-state">継続中の改善策はありません</div>'
+      : unresolved.map((r) => todayCheckinCardHtml(r, today)).join('');
 
   const sorted = [...unresolved].sort((a, b) => {
     const aDue = a.improvement?.dueDate?.getTime() ?? Infinity;
@@ -38,20 +45,32 @@ function onAuthReady() {
   renderHome();
 }
 
-// ── 習慣カレンダー（●できた / ×できなかった / ・確認待ち） ──
-const MARK_RANK = { pending: 0, fail: 1, success: 2 };
+function todayCheckinCardHtml(r, today) {
+  const checked = r.checkins.find((c) => c.date === today);
+  const statusHtml = checked
+    ? `<span class="pill ${checked.done ? 'status-accent' : 'status-warn'}">${checked.done ? '○ 記録済み' : '✕ 記録済み'}</span>`
+    : '<span class="pill status-neutral">未記録</span>';
+  return `
+    <div class="reflection-card" onclick="openCheckin('${r.id}')">
+      <div class="reflection-body">
+        <div class="reflection-title">${escapeHtml(r.improvement?.action ?? r.title)}</div>
+        <div class="reflection-meta">
+          <span class="tag-category">${escapeHtml(categoryName(r.categoryId))}</span>
+          ${statusHtml}
+        </div>
+      </div>
+    </div>`;
+}
 
-function calendarMarksFromReflections(reflections) {
+// ── 習慣カレンダー（●できた / ×できなかった） ──
+const MARK_RANK = { fail: 0, success: 1 };
+
+function calendarMarksFromCheckins(checkins) {
   const marks = {};
-  reflections.forEach((r) => {
-    const dateStr = dateKey(r.occurredAt);
-    let mark = 'pending';
-    if (r.effect) {
-      mark =
-        r.effect.result === 'improved' || r.effect.result === 'slightly_improved' ? 'success' : 'fail';
-    }
-    if (!marks[dateStr] || MARK_RANK[mark] > MARK_RANK[marks[dateStr]]) {
-      marks[dateStr] = mark;
+  checkins.forEach((c) => {
+    const mark = c.done ? 'success' : 'fail';
+    if (!marks[c.date] || MARK_RANK[mark] > MARK_RANK[marks[c.date]]) {
+      marks[c.date] = mark;
     }
   });
   return marks;
@@ -65,13 +84,12 @@ function renderHabitCalendar(reflections) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startOffset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // 月曜始まり
 
-  const monthReflections = reflections.filter(
-    (r) => r.occurredAt.getFullYear() === year && r.occurredAt.getMonth() === month,
-  );
-  const marks = calendarMarksFromReflections(monthReflections);
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const monthCheckins = reflections.flatMap((r) => r.checkins).filter((c) => c.date.startsWith(monthPrefix));
+  const marks = calendarMarksFromCheckins(monthCheckins);
 
-  const MARK_SYMBOL = { success: '●', fail: '×', pending: '・' };
-  const MARK_CLASS = { success: 'mark-success', fail: 'mark-fail', pending: 'mark-pending' };
+  const MARK_SYMBOL = { success: '●', fail: '×' };
+  const MARK_CLASS = { success: 'mark-success', fail: 'mark-fail' };
 
   let html = `<div class="calendar-title">${year}年${month + 1}月</div><div class="calendar-grid">`;
   ['月', '火', '水', '木', '金', '土', '日'].forEach((d) => {

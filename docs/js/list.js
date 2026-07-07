@@ -6,7 +6,7 @@ const LIST_STATUS_FILTERS = [
   { value: 'all', label: 'すべて' },
   { value: 'recorded', label: '未分析' },
   { value: 'planned', label: '未対応' },
-  { value: 'in_progress', label: '実践報告待ち' },
+  { value: 'in_progress', label: '継続中' },
   { value: 'done', label: '完了' },
 ];
 

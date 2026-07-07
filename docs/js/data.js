@@ -84,10 +84,8 @@ function toReflection(doc) {
     improvement: data.improvement
       ? { ...data.improvement, dueDate: data.improvement.dueDate.toDate() }
       : null,
-    practice: data.practice
-      ? { ...data.practice, reportedAt: data.practice.reportedAt.toDate() }
-      : null,
-    effect: data.effect ? { ...data.effect, confirmedAt: data.effect.confirmedAt.toDate() } : null,
+    checkins: (data.checkins || []).map((c) => ({ ...c, recordedAt: c.recordedAt.toDate() })),
+    achievedAt: data.achievedAt ? data.achievedAt.toDate() : null,
   };
 }
 
@@ -99,8 +97,8 @@ async function createReflection(uid, input) {
     causeNote: null,
     aiSuggestion: null,
     improvement: null,
-    practice: null,
-    effect: null,
+    checkins: [],
+    achievedAt: null,
     status: 'recorded',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -141,27 +139,29 @@ async function confirmImprovement(uid, id, improvement) {
     });
 }
 
-async function recordPractice(uid, id, practice, nextDueDate) {
-  const update = {
-    practice: {
-      status: practice.status,
-      reportedAt: firebase.firestore.Timestamp.fromDate(practice.reportedAt),
-    },
-    status: 'in_progress',
+// 「次失敗しないためには」の行動を実行できたかを1日1件、○✕＋理由で記録する。
+// 同じ日にもう一度記録すると上書きになる。
+async function recordCheckin(uid, id, date, done, reason) {
+  const ref = reflectionsCol(uid).doc(id);
+  const snap = await ref.get();
+  const data = snap.data();
+  const entry = { date, done, reason: reason || null, recordedAt: firebase.firestore.Timestamp.now() };
+  const checkins = [...(data.checkins || []).filter((c) => c.date !== date), entry].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+  await ref.update({
+    checkins,
+    status: data.status === 'planned' ? 'in_progress' : data.status,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-  };
-  if (practice.status === 'skipped' && nextDueDate) {
-    update['improvement.dueDate'] = firebase.firestore.Timestamp.fromDate(nextDueDate);
-  }
-  await reflectionsCol(uid).doc(id).update(update);
+  });
 }
 
-async function confirmEffect(uid, id, effect) {
+async function markImprovementAchieved(uid, id) {
   await reflectionsCol(uid)
     .doc(id)
     .update({
-      effect: { ...effect, confirmedAt: firebase.firestore.Timestamp.fromDate(effect.confirmedAt) },
       status: 'done',
+      achievedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 }
@@ -190,14 +190,20 @@ function getWeekStart(date) {
 }
 
 async function getWeeklyStats(uid) {
-  const weekStart = getWeekStart(new Date());
-  const done = await listReflections(uid, { statuses: ['done'] });
-  const doneThisWeek = done.filter((r) => r.effect && r.effect.confirmedAt >= weekStart);
-  const improvedCount = doneThisWeek.filter(
-    (r) => r.effect.result === 'improved' || r.effect.result === 'slightly_improved',
-  ).length;
+  const weekStartKey = dateKey(getWeekStart(new Date()));
+  const active = await listReflections(uid, { statuses: ['planned', 'in_progress', 'done'] });
+  let checkinCount = 0;
+  let doneCount = 0;
+  active.forEach((r) => {
+    r.checkins.forEach((c) => {
+      if (c.date >= weekStartKey) {
+        checkinCount++;
+        if (c.done) doneCount++;
+      }
+    });
+  });
   return {
-    doneCount: doneThisWeek.length,
-    improvementRate: doneThisWeek.length > 0 ? improvedCount / doneThisWeek.length : null,
+    checkinCount,
+    checkinRate: checkinCount > 0 ? doneCount / checkinCount : null,
   };
 }

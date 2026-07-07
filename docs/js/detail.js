@@ -16,19 +16,51 @@ async function renderDetail(id) {
   }
 
   document.getElementById('detail-timeline').innerHTML = buildTimelineHtml(r);
+  document.getElementById('detail-checkin-history').innerHTML = buildCheckinHistoryHtml(r);
 
   const actionBtn = document.getElementById('detail-action-btn');
+  const achieveBtn = document.getElementById('detail-achieve-btn');
+  achieveBtn.style.display = 'none';
   if (r.status === 'recorded' || r.status === 'analyzed') {
     actionBtn.style.display = 'block';
     actionBtn.textContent = '続きを入力する';
     actionBtn.onclick = () => openWizard(r.id);
   } else if (r.status === 'planned' || r.status === 'in_progress') {
+    const checkedToday = r.checkins.some((c) => c.date === dateKey(new Date()));
     actionBtn.style.display = 'block';
-    actionBtn.textContent = '実践を記録する';
-    actionBtn.onclick = () => openPractice(r.id);
+    actionBtn.textContent = checkedToday ? '今日の記録を修正する' : '今日を記録する';
+    actionBtn.onclick = () => openCheckin(r.id);
+    if (r.status === 'in_progress') {
+      achieveBtn.style.display = 'block';
+      achieveBtn.onclick = () => handleMarkAchieved(r.id);
+    }
   } else {
     actionBtn.style.display = 'none';
   }
+}
+
+async function handleMarkAchieved(id) {
+  await markImprovementAchieved(currentUser.uid, id);
+  showToast('達成として記録しました');
+  renderDetail(id);
+}
+
+function buildCheckinHistoryHtml(r) {
+  if (r.checkins.length === 0) return '';
+  const rows = [...r.checkins]
+    .reverse()
+    .map(
+      (c) => `
+      <div class="checkin-row">
+        <span class="checkin-mark ${c.done ? 'mark-success' : 'mark-fail'}">${c.done ? '○' : '✕'}</span>
+        <div class="checkin-row-body">
+          <div class="checkin-date">${c.date}</div>
+          ${c.reason ? `<div class="checkin-reason">${escapeHtml(c.reason)}</div>` : ''}
+        </div>
+      </div>`,
+    )
+    .join('');
+  return `<div class="section-title" style="margin-top: 24px">チェック履歴</div><div class="card">${rows}</div>`;
 }
 
 function buildTimelineHtml(r) {
@@ -51,10 +83,13 @@ function buildTimelineHtml(r) {
     },
   ];
 
-  let doAndCheck = null;
-  if (r.practice) doAndCheck = r.practice.status === 'done' ? '実施した' : '未実施（期限を再設定）';
-  if (r.effect) doAndCheck = `${doAndCheck ?? ''} → ${EFFECT_LABELS[r.effect.result]}`;
-  steps.push({ label: '実践・効果確認', content: doAndCheck, completed: !!r.effect });
+  let checkinSummary = null;
+  if (r.checkins.length > 0) {
+    const doneCount = r.checkins.filter((c) => c.done).length;
+    checkinSummary = `○ ${doneCount}日 / ✕ ${r.checkins.length - doneCount}日`;
+    if (r.achievedAt) checkinSummary += '（達成として完了）';
+  }
+  steps.push({ label: '継続チェック', content: checkinSummary, completed: r.checkins.length > 0 });
 
   return steps
     .map(
