@@ -1,6 +1,4 @@
-import firestore, { type FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-
-import { reflectionsCollection } from '@/firebase/firestore';
+import { docExists, FieldValue, reflectionsCollection, Timestamp } from '@/firebase/firestore';
 import type {
   Cause,
   Effect,
@@ -31,7 +29,7 @@ export const reflectionsRepository = {
   async create(uid: string, input: NewReflectionInput): Promise<string> {
     const ref = await reflectionsCollection(uid).add({
       ...input,
-      occurredAt: firestore.Timestamp.fromDate(input.occurredAt),
+      occurredAt: Timestamp.fromDate(input.occurredAt),
       causes: [],
       causeNote: null,
       aiSuggestion: null,
@@ -39,8 +37,8 @@ export const reflectionsRepository = {
       practice: null,
       effect: null,
       status: 'recorded' satisfies ReflectionStatus,
-      createdAt: firestore.FieldValue.serverTimestamp(),
-      updatedAt: firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
     return ref.id;
   },
@@ -57,7 +55,7 @@ export const reflectionsRepository = {
         causes,
         causeNote,
         status: 'analyzed' satisfies ReflectionStatus,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
   },
 
@@ -74,8 +72,8 @@ export const reflectionsRepository = {
     await reflectionsCollection(uid)
       .doc(id)
       .update({
-        aiSuggestion: { ...suggestion, generatedAt: firestore.Timestamp.now() },
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+        aiSuggestion: { ...suggestion, generatedAt: Timestamp.now() },
+        updatedAt: FieldValue.serverTimestamp(),
       });
   },
 
@@ -83,9 +81,9 @@ export const reflectionsRepository = {
     await reflectionsCollection(uid)
       .doc(id)
       .update({
-        improvement: { ...improvement, dueDate: firestore.Timestamp.fromDate(improvement.dueDate) },
+        improvement: { ...improvement, dueDate: Timestamp.fromDate(improvement.dueDate) },
         status: 'planned' satisfies ReflectionStatus,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
   },
 
@@ -96,12 +94,12 @@ export const reflectionsRepository = {
     nextDueDate?: Date,
   ): Promise<void> {
     const update: Record<string, unknown> = {
-      practice: { ...practice, reportedAt: firestore.Timestamp.fromDate(practice.reportedAt) },
+      practice: { ...practice, reportedAt: Timestamp.fromDate(practice.reportedAt) },
       status: 'in_progress' satisfies ReflectionStatus,
-      updatedAt: firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
     if (practice.status === 'skipped' && nextDueDate) {
-      update['improvement.dueDate'] = firestore.Timestamp.fromDate(nextDueDate);
+      update['improvement.dueDate'] = Timestamp.fromDate(nextDueDate);
     }
     await reflectionsCollection(uid).doc(id).update(update);
   },
@@ -110,20 +108,22 @@ export const reflectionsRepository = {
     await reflectionsCollection(uid)
       .doc(id)
       .update({
-        effect: { ...effect, confirmedAt: firestore.Timestamp.fromDate(effect.confirmedAt) },
+        effect: { ...effect, confirmedAt: Timestamp.fromDate(effect.confirmedAt) },
         status: 'done' satisfies ReflectionStatus,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
   },
 
   async getById(uid: string, id: string): Promise<Reflection | null> {
     const doc = await reflectionsCollection(uid).doc(id).get();
-    if (!doc.exists()) return null;
+    if (!docExists(doc)) return null;
     return toReflection(doc);
   },
 
   async listByFilter(uid: string, filter: ReflectionFilter = {}): Promise<Reflection[]> {
-    let query: FirebaseFirestoreTypes.Query = reflectionsCollection(uid);
+    // ネイティブ(RNFirebase)とWeb(firebase compat)で型が異なるため、
+    // ここでは意図的にanyを使いチェーン可能なクエリビルダーとして扱う。
+    let query: any = reflectionsCollection(uid);
     if (filter.categoryId) {
       query = query.where('categoryId', '==', filter.categoryId);
     }

@@ -1,6 +1,10 @@
-import firestore from '@react-native-firebase/firestore';
+import firestore, { type FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export const db = firestore();
+export const FieldValue = firestore.FieldValue;
+export const Timestamp = firestore.Timestamp;
+
+export const docExists = (snap: FirebaseFirestoreTypes.DocumentSnapshot): boolean => snap.exists();
 
 export const userDoc = (uid: string) => db.collection('users').doc(uid);
 export const reflectionsCollection = (uid: string) => userDoc(uid).collection('reflections');

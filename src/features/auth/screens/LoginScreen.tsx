@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Platform, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 
+import { AppleSignInButton } from '../components/AppleSignInButton';
 import { emailAuthSchema, type EmailAuthFormValues } from '../schemas';
 import {
   useAppleSignIn,
@@ -49,15 +49,7 @@ export function LoginScreen() {
       </View>
 
       <View className="gap-3">
-        {Platform.OS === 'ios' && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={999}
-            style={{ width: '100%', height: 48 }}
-            onPress={() => appleSignIn.mutate()}
-          />
-        )}
+        <AppleSignInButton onPress={() => appleSignIn.mutate()} />
         <Button label="Googleで続ける" variant="secondary" onPress={() => googleSignIn.mutate()} />
       </View>
 

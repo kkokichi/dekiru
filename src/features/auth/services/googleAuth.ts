@@ -32,3 +32,11 @@ export async function signInWithGoogle() {
   const credential = auth.GoogleAuthProvider.credential(idToken);
   return firebaseAuth.signInWithCredential(credential);
 }
+
+export async function signOutFromGoogle() {
+  try {
+    await GoogleSignin.signOut();
+  } catch {
+    // Googleでサインインしていない場合はエラーになるが無視してよい
+  }
+}

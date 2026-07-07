@@ -44,6 +44,9 @@
     ],
     "extra": {
       "googleWebClientId": ""
+    },
+    "experiments": {
+      "baseUrl": "/dekiru"
     }
   }
 }

@@ -1,8 +1,8 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { colorScheme } from 'nativewind';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { signOutFromGoogle } from '@/features/auth/services/googleAuth';
 import { firebaseAuth } from '@/firebase/auth';
 import { useAuth } from '@/providers/AuthProvider';
 import { usersRepository } from '@/repositories/usersRepository';
@@ -27,11 +27,7 @@ export function SettingsScreen() {
   };
 
   const signOut = async () => {
-    try {
-      await GoogleSignin.signOut();
-    } catch {
-      // Googleでサインインしていない場合はエラーになるが無視してよい
-    }
+    await signOutFromGoogle();
     await firebaseAuth.signOut();
   };
 

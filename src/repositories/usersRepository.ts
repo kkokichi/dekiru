@@ -1,6 +1,4 @@
-import firestore from '@react-native-firebase/firestore';
-
-import { userDoc } from '@/firebase/firestore';
+import { db, docExists, FieldValue, userDoc } from '@/firebase/firestore';
 
 export type AuthProvider = 'google' | 'apple' | 'password';
 
@@ -15,7 +13,7 @@ export interface UserProfile {
 export const usersRepository = {
   async exists(uid: string): Promise<boolean> {
     const snap = await userDoc(uid).get();
-    return snap.exists();
+    return docExists(snap);
   },
 
   async create(
@@ -24,7 +22,7 @@ export const usersRepository = {
   ): Promise<void> {
     await userDoc(uid).set({
       ...data,
-      createdAt: firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       aiUsage: { date: '', count: 0 },
       settings: { theme: 'system' },
     });
@@ -36,7 +34,7 @@ export const usersRepository = {
 
   /** アカウント削除確認用に、users/{uid} 配下の全サブコレクションを削除する */
   async deleteAllData(uid: string): Promise<void> {
-    const batch = firestore().batch();
+    const batch = db.batch();
     const [reflectionsSnap, categoriesSnap] = await Promise.all([
       userDoc(uid).collection('reflections').get(),
       userDoc(uid).collection('categories').get(),
