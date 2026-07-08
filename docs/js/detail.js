@@ -66,6 +66,24 @@ async function renderDetail(id) {
   }
 }
 
+async function confirmDeleteReflection() {
+  if (
+    !confirm('この振り返りを削除しますか？チェック履歴や教訓もあわせて削除され、元に戻せません。')
+  )
+    return;
+  await deleteReflection(currentUser.uid, activeReflectionId);
+  activeReflectionId = null; // goBack()が削除済みの詳細を再表示しないように
+  showToast('振り返りを削除しました');
+  goBack();
+}
+
+async function confirmDeleteCheckin(id, date) {
+  if (!confirm(`${formatShortDate(date)}のチェックを削除しますか？`)) return;
+  await deleteCheckin(currentUser.uid, id, date);
+  showToast('チェックを削除しました');
+  renderDetail(id);
+}
+
 function buildCheckinHistoryHtml(r) {
   if (r.checkins.length === 0) return '';
   const rows = [...r.checkins]
@@ -78,6 +96,9 @@ function buildCheckinHistoryHtml(r) {
           <div class="checkin-date">${formatShortDate(c.date)}</div>
           ${c.reason ? `<div class="checkin-reason">${escapeHtml(c.reason)}</div>` : ''}
         </div>
+        <button type="button" class="checkin-delete" onclick="confirmDeleteCheckin('${r.id}', '${c.date}')">
+          削除
+        </button>
       </div>`,
     )
     .join('');

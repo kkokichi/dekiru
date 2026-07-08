@@ -147,6 +147,10 @@ h3 {
   background: transparent;
   color: var(--accent);
 }
+.btn-ghost-danger {
+  background: transparent;
+  color: var(--danger);
+}
 .btn:disabled {
   opacity: 0.5;
 }
@@ -849,6 +853,18 @@ h3 {
 .checkin-reason {
   font-size: 13px;
   margin-top: 2px;
+}
+.checkin-delete {
+  border: none;
+  background: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0 6px;
+  flex: none;
+  align-self: center;
+  min-height: 44px;
 }
 
 /* ── 成長画面 ── */

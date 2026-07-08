@@ -187,6 +187,15 @@
         >
           達成として完了にする
         </button>
+        <button
+          type="button"
+          class="btn btn-ghost-danger"
+          id="detail-delete-btn"
+          style="margin-top: 8px"
+          onclick="confirmDeleteReflection()"
+        >
+          この振り返りを削除する
+        </button>
       </div>
 
       <!-- ══ CHECKIN ══ -->
@@ -214,6 +223,9 @@
             ></textarea>
           </div>
           <button type="button" class="btn btn-primary" onclick="saveCheckin()">保存する</button>
+          <button type="button" class="btn btn-ghost" style="margin-top: 8px" onclick="backToCheckinChoice()">
+            ‹ ○✕を選び直す
+          </button>
         </div>
         </div>
       </div>
@@ -328,6 +340,9 @@
             <input type="text" id="wizard-cause-other-input" placeholder="具体的な原因を入力してください" />
           </div>
           <button type="button" class="btn btn-primary" onclick="submitWizardStep2()">次へ</button>
+          <button type="button" class="btn btn-ghost" style="margin-top: 8px" onclick="goBackWizardStep(1)">
+            ‹ 基本情報に戻る
+          </button>
         </div>
 
         <div class="wizard-step" id="wizard-step-3">
@@ -348,6 +363,9 @@
             </div>
           </div>
           <button type="button" class="btn btn-primary" onclick="submitWizardStep3()">改善策を保存</button>
+          <button type="button" class="btn btn-ghost" style="margin-top: 8px" onclick="goBackWizardStep(2)">
+            ‹ 原因分析に戻る
+          </button>
         </div>
       </div>
 

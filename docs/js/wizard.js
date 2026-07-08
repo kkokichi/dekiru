@@ -55,6 +55,15 @@ function goToWizardStep(step) {
   if (step === 3) renderWizardStep3();
 }
 
+// 「戻る」ボタン。保存済みの内容を読み直してから前のステップを表示する
+// （新規フローではwizardExistingが空のままなので、入力済みの値が消えないように）
+async function goBackWizardStep(step) {
+  if (wizardReflectionId) {
+    wizardExisting = await getReflection(currentUser.uid, wizardReflectionId);
+  }
+  goToWizardStep(step);
+}
+
 // ── STEP 1: 基本情報 ──
 let wizardEmotion = 3;
 
@@ -120,6 +129,13 @@ async function submitWizardStep1() {
     emotion: wizardEmotion,
     occurredAt: new Date(),
   };
+
+  // 「戻る」で修正した場合など、作成済みなら上書き更新する（重複作成を防ぐ）
+  if (wizardReflectionId) {
+    await updateReflectionBasics(currentUser.uid, wizardReflectionId, input);
+    goToWizardStep(2);
+    return;
+  }
 
   const id = await createReflection(currentUser.uid, input);
   wizardReflectionId = id;

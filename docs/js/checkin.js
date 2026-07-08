@@ -35,6 +35,13 @@ function chooseCheckin(done) {
     : 'できなかった理由（任意）';
 }
 
+// ○✕を押し間違えた時に選択画面へ戻る（入力済みの理由は保持する）
+function backToCheckinChoice() {
+  checkinDone = null;
+  document.getElementById('checkin-choice-row').style.display = 'flex';
+  document.getElementById('checkin-reason-row').style.display = 'none';
+}
+
 async function saveCheckin() {
   const reason = document.getElementById('checkin-reason-input').value.trim();
   await recordCheckin(currentUser.uid, checkinReflectionId, dateKey(new Date()), checkinDone, reason);

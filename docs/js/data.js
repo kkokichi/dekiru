@@ -103,6 +103,21 @@ async function createReflection(uid, input) {
   return ref.id;
 }
 
+// ウィザードで「戻る」から基本情報を修正した時に使う（作成済みの下書きを上書き）
+async function updateReflectionBasics(uid, id, input) {
+  await reflectionsCol(uid).doc(id).update({
+    title: input.title,
+    detail: input.detail,
+    categoryId: input.categoryId,
+    emotion: input.emotion,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function deleteReflection(uid, id) {
+  await reflectionsCol(uid).doc(id).delete();
+}
+
 async function updateCauses(uid, id, causes, causeNote) {
   await reflectionsCol(uid)
     .doc(id)
@@ -140,6 +155,19 @@ async function recordCheckin(uid, id, date, done, reason) {
   await ref.update({
     checkins,
     status: data.status === 'planned' ? 'in_progress' : data.status,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// 間違えて記録した日のチェックを1件削除する。チェックが0件に戻ったら状態も「未対応」に戻す
+async function deleteCheckin(uid, id, date) {
+  const ref = reflectionsCol(uid).doc(id);
+  const snap = await ref.get();
+  const data = snap.data();
+  const checkins = (data.checkins || []).filter((c) => c.date !== date);
+  await ref.update({
+    checkins,
+    status: data.status === 'in_progress' && checkins.length === 0 ? 'planned' : data.status,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 }
