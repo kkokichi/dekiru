@@ -4,12 +4,14 @@ let wizardReflectionId = null;
 let wizardCauses = [];
 let wizardExisting = null; // 再開時に読み込んだ既存データ
 let wizardQuickMode = false; // true: タイトル+感情だけで即保存し、分析は後回しにする
+let wizardEditMode = false; // true: 登録済みの振り返りを修正中（入力済みのステップだけ回る）
 
 function openWizard(resumeId) {
   wizardReflectionId = resumeId || null;
   wizardExisting = null;
   wizardCauses = [];
   wizardQuickMode = false;
+  wizardEditMode = false;
   navigate('wizard');
   document.getElementById('wizard-quick-hint').style.display = 'none';
 
@@ -29,13 +31,29 @@ function openQuickWizard() {
   wizardExisting = null;
   wizardCauses = [];
   wizardQuickMode = true;
+  wizardEditMode = false;
   navigate('wizard');
   document.getElementById('wizard-quick-hint').style.display = 'block';
   goToWizardStep(1);
 }
 
+// 詳細画面の「内容を編集する」から。STEP1から始めて、入力済みのステップだけ順に回る
+function openWizardEdit(id) {
+  wizardReflectionId = id;
+  wizardQuickMode = false;
+  wizardEditMode = true;
+  navigate('wizard');
+  document.getElementById('wizard-quick-hint').style.display = 'none';
+  getReflection(currentUser.uid, id).then((r) => {
+    wizardExisting = r;
+    wizardCauses = r.causes || [];
+    goToWizardStep(1);
+  });
+}
+
 function closeWizard() {
-  navigate(prevScreen === 'wizard' ? 'home' : prevScreen);
+  // 開いた元の画面（ホーム・一覧・詳細など）へ、最新の状態に描き直して戻る
+  goBack();
 }
 
 function goToWizardStep(step) {
@@ -162,6 +180,12 @@ async function submitWizardStep1() {
   // 「戻る」で修正した場合など、作成済みなら上書き更新する（重複作成を防ぐ）
   if (wizardReflectionId) {
     await updateReflectionBasics(currentUser.uid, wizardReflectionId, input);
+    // 編集モードで原因分析まで進んでいない振り返りなら、基本情報の保存だけで完了にする
+    if (wizardEditMode && !wizardExisting?.causes?.length && !wizardExisting?.improvement) {
+      showToast('保存しました');
+      closeWizard();
+      return;
+    }
     goToWizardStep(2);
     return;
   }
@@ -287,6 +311,12 @@ async function submitWizardStep2() {
   if (wizardCauses.length === 0) return showToast('原因を1つ以上選択してください');
   const note = document.getElementById('wizard-cause-other-input').value.trim();
   await updateCauses(currentUser.uid, wizardReflectionId, wizardCauses, note);
+  // 編集モードで改善策が未確定の振り返りなら、ここまでの保存で完了にする
+  if (wizardEditMode && !wizardExisting?.improvement) {
+    showToast('保存しました');
+    closeWizard();
+    return;
+  }
   goToWizardStep(3);
 }
 
@@ -312,5 +342,4 @@ async function submitWizardStep3() {
   });
   showToast('改善策を保存しました');
   closeWizard();
-  renderHome();
 }

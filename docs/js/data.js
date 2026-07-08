@@ -132,27 +132,28 @@ async function deleteReflection(uid, id) {
 }
 
 async function updateCauses(uid, id, causes, causeNote) {
-  await reflectionsCol(uid)
-    .doc(id)
-    .update({
-      causes,
-      causeNote: causeNote || null,
-      status: 'analyzed',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+  const ref = reflectionsCol(uid).doc(id);
+  // 編集で呼ばれた時に継続中・完了などの進捗が巻き戻らないよう、前進のみ
+  const current = (await ref.get()).data().status;
+  await ref.update({
+    causes,
+    causeNote: causeNote || null,
+    status: current === 'recorded' ? 'analyzed' : current,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
 }
 
 async function confirmImprovement(uid, id, improvement) {
-  await reflectionsCol(uid)
-    .doc(id)
-    .update({
-      improvement: {
-        ...improvement,
-        dueDate: firebase.firestore.Timestamp.fromDate(improvement.dueDate),
-      },
-      status: 'planned',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+  const ref = reflectionsCol(uid).doc(id);
+  const current = (await ref.get()).data().status;
+  await ref.update({
+    improvement: {
+      ...improvement,
+      dueDate: firebase.firestore.Timestamp.fromDate(improvement.dueDate),
+    },
+    status: current === 'recorded' || current === 'analyzed' ? 'planned' : current,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
 }
 
 // 「次失敗しないためには」の行動を実行できたかを1日1件、○✕＋理由で記録する。
