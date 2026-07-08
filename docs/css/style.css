@@ -616,6 +616,10 @@ h3 {
   color: var(--danger);
   background: none;
 }
+.calendar-day-mark.mark-none {
+  color: var(--text-tertiary);
+  background: none;
+}
 .calendar-day-body {
   min-width: 0;
 }

@@ -1,11 +1,13 @@
 let checkinReflectionId = null;
 let checkinDone = null;
 let checkinReflection = null; // 選択日の記録済みチェックを参照するため保持
+let checkinInitialDate = null; // カレンダーの日付タップなど、開いた時点で選んでおく日
 
-function openCheckin(id) {
+function openCheckin(id, date) {
   checkinReflectionId = id;
   activeReflectionId = id;
   checkinDone = null;
+  checkinInitialDate = date || null;
   navigate('checkin');
   renderCheckin(id);
 }
@@ -15,10 +17,10 @@ async function renderCheckin(id) {
   checkinReflection = r;
   document.getElementById('checkin-action-text').textContent = r.improvement?.action ?? '';
 
-  // デフォルトは今日。未来の日は選べない
+  // デフォルトは今日（呼び出し元が日付を指定していればその日）。未来の日は選べない
   const today = dateKey(new Date());
   const dateInput = document.getElementById('checkin-date-input');
-  dateInput.value = today;
+  dateInput.value = checkinInitialDate && checkinInitialDate <= today ? checkinInitialDate : today;
   dateInput.max = today;
 
   syncCheckinDateState();

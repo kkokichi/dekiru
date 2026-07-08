@@ -190,7 +190,9 @@ function drawHabitCalendar() {
   document.getElementById('home-calendar').innerHTML = html;
 }
 
-// 選択中の日のチェック履歴（どの改善策が○/✕だったか＋理由）
+// 選択中の日のチェック履歴（どの改善策が○/✕だったか＋理由）。
+// まだ記録していない継続中の改善策は「＋ この日の分を記録する」として並べ、
+// 記録し忘れた日も後からその場で入力できるようにする
 function calendarDayDetailHtml() {
   if (!calendarSelectedDate) return '';
   const entries = [];
@@ -199,12 +201,18 @@ function calendarDayDetailHtml() {
     if (c) entries.push({ r, c });
   });
   entries.sort((a, b) => (a.c.done === b.c.done ? 0 : a.c.done ? -1 : 1));
-  const listHtml =
-    entries.length === 0
-      ? '<div class="calendar-day-empty">この日のチェック記録はありません</div>'
-      : entries
-          .map(
-            ({ r, c }) => `
+
+  const unchecked = calendarReflections.filter(
+    (r) =>
+      (r.status === 'planned' || r.status === 'in_progress') &&
+      r.improvement &&
+      dateKey(r.createdAt) <= calendarSelectedDate &&
+      !r.checkins.some((ci) => ci.date === calendarSelectedDate),
+  );
+
+  const recordedHtml = entries
+    .map(
+      ({ r, c }) => `
         <div class="calendar-day-entry" onclick="openDetail('${r.id}')">
           <span class="calendar-day-mark ${c.done ? 'mark-success' : 'mark-fail'}">${c.done ? '○' : '✕'}</span>
           <div class="calendar-day-body">
@@ -212,8 +220,23 @@ function calendarDayDetailHtml() {
             ${c.reason ? `<div class="calendar-day-reason">${escapeHtml(c.reason)}</div>` : ''}
           </div>
         </div>`,
-          )
-          .join('');
+    )
+    .join('');
+  const uncheckedHtml = unchecked
+    .map(
+      (r) => `
+        <div class="calendar-day-entry" onclick="openCheckin('${r.id}', '${calendarSelectedDate}')">
+          <span class="calendar-day-mark mark-none">＋</span>
+          <div class="calendar-day-body">
+            <div class="calendar-day-action">${escapeHtml(r.improvement.action)}</div>
+            <div class="calendar-day-reason">この日の分を記録する</div>
+          </div>
+        </div>`,
+    )
+    .join('');
+  const listHtml =
+    recordedHtml + uncheckedHtml ||
+    '<div class="calendar-day-empty">この日のチェック記録はありません</div>';
   return `
     <div class="calendar-day-detail">
       <div class="calendar-day-title">${formatShortDate(calendarSelectedDate)}のチェック</div>
