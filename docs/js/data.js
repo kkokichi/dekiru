@@ -64,8 +64,49 @@ async function addCategory(uid, name) {
   return category;
 }
 
+async function renameCategory(uid, id, name) {
+  await categoriesCol(uid).doc(id).update({ name });
+  const category = categoriesCache.find((c) => c.id === id);
+  if (category) category.name = name;
+}
+
+async function deleteCategory(uid, id) {
+  await categoriesCol(uid).doc(id).delete();
+  categoriesCache = categoriesCache.filter((c) => c.id !== id);
+}
+
+async function countReflectionsInCategory(uid, categoryId) {
+  const snap = await reflectionsCol(uid).where('categoryId', '==', categoryId).get();
+  return snap.size;
+}
+
+// 並び順を1つ上/下と入れ替える。orderに欠番があっても壊れないよう全体を振り直す
+async function swapCategoryOrder(uid, id, delta) {
+  const i = categoriesCache.findIndex((c) => c.id === id);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= categoriesCache.length) return;
+  [categoriesCache[i], categoriesCache[j]] = [categoriesCache[j], categoriesCache[i]];
+  const batch = db.batch();
+  categoriesCache.forEach((c, idx) => {
+    c.order = idx;
+    batch.update(categoriesCol(uid).doc(c.id), { order: idx });
+  });
+  await batch.commit();
+}
+
 async function updateThemeSetting(uid, theme) {
   await userDocRef(uid).update({ 'settings.theme': theme });
+}
+
+// リマインダー設定をサーバーにも保存（プッシュ通知のCloud Functionが参照する）
+async function saveReminderToServer(uid, reminder) {
+  await userDocRef(uid).update({ 'settings.reminder': reminder });
+}
+
+async function saveFcmToken(uid, token) {
+  await userDocRef(uid).update({
+    fcmTokens: firebase.firestore.FieldValue.arrayUnion(token),
+  });
 }
 
 async function deleteAllUserData(uid) {

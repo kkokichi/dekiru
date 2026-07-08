@@ -59,6 +59,7 @@ function closeWizard() {
 function goToWizardStep(step) {
   wizardStep = step;
   document.getElementById('wizard-recur').style.display = 'none';
+  document.getElementById('wizard-recur-lesson').style.display = 'none';
   document.querySelectorAll('.wizard-step').forEach((el) => el.classList.remove('active'));
   document.getElementById('wizard-step-' + step).classList.add('active');
   document.querySelectorAll('.wizard-progress-seg').forEach((seg, i) => {
@@ -276,7 +277,39 @@ function hideRecurrenceChooser() {
 async function selectRecurrence(originalId) {
   await setRecurrence(currentUser.uid, wizardReflectionId, originalId);
   hideRecurrenceChooser();
+  // 前回の教訓・改善策があれば、同じ失敗を繰り返さないためにここで思い出してもらう
+  const original = await getReflection(currentUser.uid, originalId);
+  if (original?.lesson || original?.improvement) {
+    showRecurrenceLesson(original);
+    return;
+  }
   showToast('再発として記録しました');
+  proceedAfterStep1();
+}
+
+function showRecurrenceLesson(original) {
+  document.querySelectorAll('.wizard-step').forEach((el) => el.classList.remove('active'));
+  document.getElementById('wizard-title').textContent = '前回の学び';
+  document.getElementById('wizard-step-label').textContent = '';
+  const parts = [
+    `<p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 0">再発として記録しました。前回「${escapeHtml(original.title)}」で残した学びを思い出してから続けましょう。</p>`,
+  ];
+  if (original.lesson) {
+    parts.push(
+      `<div class="section-title">前回の教訓</div><div class="card lesson-card">${escapeHtml(original.lesson)}</div>`,
+    );
+  }
+  if (original.improvement) {
+    parts.push(
+      `<div class="section-title" style="margin-top: 16px">前回の改善策</div><div class="card">${escapeHtml(original.improvement.action)}</div>`,
+    );
+  }
+  document.getElementById('wizard-recur-lesson-body').innerHTML = parts.join('');
+  document.getElementById('wizard-recur-lesson').style.display = 'block';
+}
+
+function dismissRecurrenceLesson() {
+  document.getElementById('wizard-recur-lesson').style.display = 'none';
   proceedAfterStep1();
 }
 

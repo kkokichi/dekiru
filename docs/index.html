@@ -72,7 +72,7 @@
             <div class="num" id="home-streak">—</div>
             <div class="lbl">継続日数</div>
           </div>
-          <div class="stat-card">
+          <div class="stat-card tappable" onclick="openWeeklyReview()">
             <div class="num" id="home-improvement-rate">—</div>
             <div class="lbl">今週の実践率</div>
           </div>
@@ -124,6 +124,9 @@
             <div class="lbl">再発した失敗</div>
           </div>
         </div>
+        <button type="button" class="btn btn-secondary" style="margin-bottom: 4px" onclick="openWeeklyReview()">
+          今週のレビューを見る
+        </button>
         <div class="home-section">
           <div class="section-title">月ごとの改善数（直近6ヶ月）</div>
           <div class="card">
@@ -258,6 +261,41 @@
         </button>
       </div>
 
+      <!-- ══ WEEKLY REVIEW ══ -->
+      <div class="screen" id="review">
+        <button type="button" class="back-btn" onclick="goBack()">‹ 戻る</button>
+        <h2 style="font-size: 19px; margin-bottom: 4px">週次レビュー</h2>
+        <div id="review-range" style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px"></div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="review-rate">—</div>
+            <div class="lbl">今週の実践率</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="review-rate-diff">—</div>
+            <div class="lbl">先週との比較</div>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="num" id="review-done">—</div>
+            <div class="lbl">○ できた</div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="review-fail">—</div>
+            <div class="lbl">✕ できなかった</div>
+          </div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">改善策ごとの結果</div>
+          <div id="review-actions"></div>
+        </div>
+        <div class="home-section">
+          <div class="section-title">今週書いた理由</div>
+          <div id="review-reasons"></div>
+        </div>
+      </div>
+
       <!-- ══ SETTINGS ══ -->
       <div class="screen" id="settings">
         <h2 style="font-size: 19px; margin-bottom: 24px">設定</h2>
@@ -274,10 +312,20 @@
             <span>時刻</span>
             <input type="time" id="reminder-time" value="21:00" onchange="onReminderTimeChange(this.value)" />
           </div>
-          <p class="reminder-note">
+          <p class="reminder-note" id="reminder-note">
             通知はアプリを開いている間に表示されます。ホーム画面にも未チェックのお知らせが出ます。
           </p>
         </div>
+        <div class="section-title">カテゴリ</div>
+        <div class="card" id="settings-category-list" style="margin-bottom: 12px"></div>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          style="margin-bottom: 24px"
+          onclick="addCategoryFromSettings()"
+        >
+          ＋ カテゴリを追加
+        </button>
         <div class="section-title">データ</div>
         <button type="button" class="btn btn-secondary" style="margin-bottom: 24px" onclick="openExport()">
           データをエクスポート（AI分析用）
@@ -319,6 +367,13 @@
           </p>
           <div id="wizard-recur-list" style="margin-bottom: 16px"></div>
           <button type="button" class="btn btn-secondary" onclick="skipRecurrence()">新しい失敗として続ける</button>
+        </div>
+
+        <div id="wizard-recur-lesson" style="display: none">
+          <div id="wizard-recur-lesson-body"></div>
+          <button type="button" class="btn btn-primary" style="margin-top: 20px" onclick="dismissRecurrenceLesson()">
+            続ける
+          </button>
         </div>
 
         <div class="wizard-step" id="wizard-step-1">
@@ -430,6 +485,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
     <script src="js/firebase-init.js"></script>
     <script src="js/core.js"></script>
     <script src="js/data.js"></script>
@@ -442,6 +498,7 @@
     <script src="js/checkin.js"></script>
     <script src="js/lesson.js"></script>
     <script src="js/export.js"></script>
+    <script src="js/review.js"></script>
     <script src="js/settings.js"></script>
   </body>
 </html>

@@ -12,6 +12,12 @@ const firebaseConfig = {
   measurementId: 'G-ED70Q6RLHR',
 };
 
+// プッシュ通知（FCM）用のウェブプッシュ証明書キー。
+// Firebaseコンソール → プロジェクト設定 → Cloud Messaging → ウェブプッシュ証明書 の
+// 「鍵ペア」を貼り付けると、リマインダーがアプリを閉じていても届くプッシュ通知になる。
+// 空のままなら従来どおりアプリを開いている間だけの画面内通知で動く。
+const FCM_VAPID_KEY = '';
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
