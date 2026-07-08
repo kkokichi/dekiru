@@ -1,5 +1,6 @@
 let checkinReflectionId = null;
 let checkinDone = null;
+let checkinReflection = null; // 選択日の記録済みチェックを参照するため保持
 
 function openCheckin(id) {
   checkinReflectionId = id;
@@ -11,16 +12,29 @@ function openCheckin(id) {
 
 async function renderCheckin(id) {
   const r = await getReflection(currentUser.uid, id);
+  checkinReflection = r;
   document.getElementById('checkin-action-text').textContent = r.improvement?.action ?? '';
 
+  // デフォルトは今日。未来の日は選べない
   const today = dateKey(new Date());
-  const existing = r.checkins.find((c) => c.date === today);
+  const dateInput = document.getElementById('checkin-date-input');
+  dateInput.value = today;
+  dateInput.max = today;
+
+  syncCheckinDateState();
+}
+
+// 選択した日に合わせて、記録済みヒントと理由欄の内容を切り替える
+function syncCheckinDateState() {
+  const date = document.getElementById('checkin-date-input').value;
+  const existing = checkinReflection?.checkins.find((c) => c.date === date);
   const hintEl = document.getElementById('checkin-existing-hint');
   hintEl.style.display = existing ? 'block' : 'none';
   hintEl.textContent = existing
-    ? `今日はすでに「${existing.done ? '○ できた' : '✕ できなかった'}」で記録済みです。保存すると上書きされます。`
+    ? `${formatShortDate(date)}はすでに「${existing.done ? '○ できた' : '✕ できなかった'}」で記録済みです。保存すると上書きされます。`
     : '';
 
+  checkinDone = null;
   document.getElementById('checkin-choice-row').style.display = 'flex';
   document.getElementById('checkin-reason-row').style.display = 'none';
   document.getElementById('checkin-reason-input').value = existing?.reason ?? '';
@@ -43,8 +57,9 @@ function backToCheckinChoice() {
 }
 
 async function saveCheckin() {
+  const date = document.getElementById('checkin-date-input').value || dateKey(new Date());
   const reason = document.getElementById('checkin-reason-input').value.trim();
-  await recordCheckin(currentUser.uid, checkinReflectionId, dateKey(new Date()), checkinDone, reason);
-  showToast('記録しました');
+  await recordCheckin(currentUser.uid, checkinReflectionId, date, checkinDone, reason);
+  showToast(`${formatShortDate(date)}のチェックを記録しました`);
   openDetail(checkinReflectionId);
 }

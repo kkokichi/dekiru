@@ -75,6 +75,12 @@ function renderWizardStep1() {
 
   document.getElementById('wizard-title-input').value = wizardExisting?.title ?? '';
   document.getElementById('wizard-detail-input').value = wizardExisting?.detail ?? '';
+
+  // いつのこと？はデフォルト今日。未来の日は選べない
+  const dateInput = document.getElementById('wizard-date-input');
+  const today = dateKey(new Date());
+  dateInput.value = wizardExisting ? dateKey(wizardExisting.occurredAt) : today;
+  dateInput.max = today;
 }
 
 // タイトル等の入力を消さずにカテゴリチップだけ描き直せるよう分離
@@ -144,12 +150,13 @@ async function submitWizardStep1() {
     )?.id;
   if (!categoryId) return showToast('カテゴリを選択してください');
 
+  const dateValue = document.getElementById('wizard-date-input').value;
   const input = {
     title,
     detail: document.getElementById('wizard-detail-input').value.trim(),
     categoryId,
     emotion: wizardEmotion,
-    occurredAt: new Date(),
+    occurredAt: dateValue ? new Date(`${dateValue}T00:00:00`) : new Date(),
   };
 
   // 「戻る」で修正した場合など、作成済みなら上書き更新する（重複作成を防ぐ）

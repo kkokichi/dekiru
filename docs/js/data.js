@@ -122,6 +122,7 @@ async function updateReflectionBasics(uid, id, input) {
     detail: input.detail,
     categoryId: input.categoryId,
     emotion: input.emotion,
+    occurredAt: firebase.firestore.Timestamp.fromDate(input.occurredAt),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 }

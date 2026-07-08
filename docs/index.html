@@ -203,8 +203,12 @@
       <div class="screen" id="checkin">
         <button type="button" class="back-btn" onclick="goBack()">‹ 戻る</button>
         <div class="checkin-body">
-        <div class="eyebrow">今日のチェック</div>
+        <div class="eyebrow">できたかチェック</div>
         <h2 id="checkin-action-text" style="font-size: 18px; margin-bottom: 12px"></h2>
+        <div class="field">
+          <label>記録する日（過去の日も選べます）</label>
+          <input type="date" id="checkin-date-input" onchange="syncCheckinDateState()" />
+        </div>
         <div
           class="card"
           id="checkin-existing-hint"
@@ -319,6 +323,10 @@
           <div class="field">
             <label>詳細</label>
             <textarea id="wizard-detail-input" rows="3" placeholder="状況を詳しく書いてみましょう"></textarea>
+          </div>
+          <div class="field">
+            <label>いつのこと？</label>
+            <input type="date" id="wizard-date-input" />
           </div>
           <div class="field">
             <label>カテゴリ</label>
