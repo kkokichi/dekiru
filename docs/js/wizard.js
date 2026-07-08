@@ -68,22 +68,40 @@ async function goBackWizardStep(step) {
 let wizardEmotion = 3;
 
 function renderWizardStep1() {
-  const categoriesHtml = categoriesCache
-    .map(
-      (c) =>
-        `<button type="button" class="chip" data-category="${c.id}" onclick="selectWizardCategory('${c.id}')">${escapeHtml(c.name)}</button>`,
-    )
-    .join('');
-  document.getElementById('wizard-category-chips').innerHTML = categoriesHtml;
+  renderWizardCategoryChips(wizardExisting?.categoryId);
 
   wizardEmotion = wizardExisting?.emotion ?? 3;
   renderEmotionPicker();
 
   document.getElementById('wizard-title-input').value = wizardExisting?.title ?? '';
   document.getElementById('wizard-detail-input').value = wizardExisting?.detail ?? '';
-  if (wizardExisting) {
-    updateChipSelection('wizard-category-chips', wizardExisting.categoryId);
+}
+
+// タイトル等の入力を消さずにカテゴリチップだけ描き直せるよう分離
+function renderWizardCategoryChips(selectedId) {
+  const categoriesHtml = categoriesCache
+    .map(
+      (c) =>
+        `<button type="button" class="chip" data-category="${c.id}" onclick="selectWizardCategory('${c.id}')">${escapeHtml(c.name)}</button>`,
+    )
+    .join('');
+  document.getElementById('wizard-category-chips').innerHTML =
+    categoriesHtml +
+    '<button type="button" class="chip chip-add" onclick="addWizardCategory()">＋ 追加</button>';
+  if (selectedId) updateChipSelection('wizard-category-chips', selectedId);
+}
+
+// 「＋ 追加」から自分のカテゴリを作る。同名があればそれを選択するだけにする
+async function addWizardCategory() {
+  const name = prompt('新しいカテゴリ名を入力してください');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  let category = categoriesCache.find((c) => c.name === trimmed);
+  if (!category) {
+    category = await addCategory(currentUser.uid, trimmed);
+    showToast(`カテゴリ「${trimmed}」を追加しました`);
   }
+  renderWizardCategoryChips(category.id);
 }
 
 function renderEmotionPicker() {
@@ -119,7 +137,11 @@ async function submitWizardStep1() {
   const title = document.getElementById('wizard-title-input').value.trim();
   if (!title) return showToast('タイトルを入力してください');
   let categoryId = document.querySelector('#wizard-category-chips .chip.active')?.dataset.category;
-  if (!categoryId && wizardQuickMode) categoryId = categoriesCache[categoriesCache.length - 1]?.id;
+  // クイック記録で未選択なら「その他」に入れる（自作カテゴリが増えても末尾＝その他とは限らない）
+  if (!categoryId && wizardQuickMode)
+    categoryId = (
+      categoriesCache.find((c) => c.name === 'その他') ?? categoriesCache[categoriesCache.length - 1]
+    )?.id;
   if (!categoryId) return showToast('カテゴリを選択してください');
 
   const input = {

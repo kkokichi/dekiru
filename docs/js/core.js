@@ -58,15 +58,15 @@ function navigate(screen) {
 function goBack() {
   if (prevScreen === 'detail' && activeReflectionId) {
     openDetail(activeReflectionId);
-  } else if (TAB_SCREENS.includes(prevScreen)) {
-    navigate(prevScreen);
-    if (prevScreen === 'home') renderHome();
-    if (prevScreen === 'growth') renderGrowth();
-    if (prevScreen === 'list') renderList();
-  } else {
-    navigate('home');
-    renderHome();
+    return;
   }
+  // navigate()がprevScreenを書き換えるため、戻り先は先に確定させておく
+  // （書き換え後のprevScreenで判定すると再描画が走らず、削除後も古い一覧が残る）
+  const target = TAB_SCREENS.includes(prevScreen) ? prevScreen : 'home';
+  navigate(target);
+  if (target === 'home') renderHome();
+  if (target === 'growth') renderGrowth();
+  if (target === 'list') renderList();
 }
 
 // ── TOAST ──

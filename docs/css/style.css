@@ -12,6 +12,8 @@
   --accent-muted: #a9cab8;
   --danger: #b3493f;
   --danger-soft: #f3e3e1;
+  --partial: #a8762c;
+  --partial-soft: #f5ecd9;
   --emo-1: #c2564a;
   --emo-2: #d99257;
   --emo-3: #d3b355;
@@ -35,6 +37,8 @@
   --accent-muted: #3e6350;
   --danger: #d97b70;
   --danger-soft: #3a2422;
+  --partial: #dcae5e;
+  --partial-soft: #38301e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,6 +56,8 @@
     --accent-muted: #3e6350;
     --danger: #d97b70;
     --danger-soft: #3a2422;
+    --partial: #dcae5e;
+    --partial-soft: #38301e;
   }
 }
 
@@ -200,6 +206,10 @@ h3 {
   font-weight: 500;
   cursor: pointer;
   min-height: 44px;
+}
+.chip-add {
+  border-style: dashed;
+  color: var(--accent-strong);
 }
 .chip.active {
   border-color: var(--accent);
@@ -541,6 +551,12 @@ h3 {
 }
 .calendar-cell.mark-success .calendar-mark {
   color: var(--accent-strong);
+}
+.calendar-cell.mark-partial {
+  background: var(--partial-soft);
+}
+.calendar-cell.mark-partial .calendar-mark {
+  color: var(--partial);
 }
 .calendar-cell.mark-fail {
   background: var(--danger-soft);

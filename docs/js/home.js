@@ -74,6 +74,9 @@ function todayCheckinCardHtml(r, today) {
   const dueHtml = due
     ? `<span class="pill ${overdue ? 'pill-warn' : 'pill-neutral'}">目標日 ${formatShortDate(due)}${overdue ? '・達成を確認' : ''}</span>`
     : '';
+  const reasonHtml = checked?.reason
+    ? `<div class="checkin-reason">${escapeHtml(checked.reason)}</div>`
+    : '';
   return `
     <div class="reflection-card" onclick="openCheckin('${r.id}')">
       <div class="reflection-body">
@@ -83,6 +86,7 @@ function todayCheckinCardHtml(r, today) {
           ${statusHtml}
           ${dueHtml}
         </div>
+        ${reasonHtml}
       </div>
     </div>`;
 }
@@ -102,8 +106,7 @@ function calcStreak(reflections) {
   return streak;
 }
 
-// ── 習慣カレンダー（●できた / ×できなかった） ──
-const MARK_RANK = { fail: 0, success: 1 };
+// ── 習慣カレンダー（その日の達成率で ○=100% / △=80%以上 / ✕=それ未満） ──
 let calendarMonthOffset = 0; // 0=当月、-1=先月…（未来には進めない）
 let calendarReflections = [];
 let calendarSelectedDate = null; // タップで選択中の日（YYYY-MM-DD）
@@ -121,12 +124,16 @@ function selectCalendarDay(dateStr) {
 }
 
 function calendarMarksFromCheckins(checkins) {
-  const marks = {};
+  const byDate = {};
   checkins.forEach((c) => {
-    const mark = c.done ? 'success' : 'fail';
-    if (!marks[c.date] || MARK_RANK[mark] > MARK_RANK[marks[c.date]]) {
-      marks[c.date] = mark;
-    }
+    byDate[c.date] ??= { done: 0, total: 0 };
+    byDate[c.date].total++;
+    if (c.done) byDate[c.date].done++;
+  });
+  const marks = {};
+  Object.entries(byDate).forEach(([date, { done, total }]) => {
+    const rate = done / total;
+    marks[date] = rate === 1 ? 'success' : rate >= 0.8 ? 'partial' : 'fail';
   });
   return marks;
 }
@@ -153,8 +160,8 @@ function drawHabitCalendar() {
     .filter((c) => c.date.startsWith(monthPrefix));
   const marks = calendarMarksFromCheckins(monthCheckins);
 
-  const MARK_SYMBOL = { success: '●', fail: '×' };
-  const MARK_CLASS = { success: 'mark-success', fail: 'mark-fail' };
+  const MARK_SYMBOL = { success: '○', partial: '△', fail: '✕' };
+  const MARK_CLASS = { success: 'mark-success', partial: 'mark-partial', fail: 'mark-fail' };
 
   let html = `
     <div class="calendar-header">

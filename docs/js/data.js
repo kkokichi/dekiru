@@ -52,6 +52,18 @@ function categoryName(categoryId) {
   return categoriesCache.find((c) => c.id === categoryId)?.name ?? '未分類';
 }
 
+// 自分だけのカテゴリを追加する。追加後は全画面の選択肢に出るようキャッシュにも反映
+async function addCategory(uid, name) {
+  const order = categoriesCache.length
+    ? Math.max(...categoriesCache.map((c) => c.order ?? 0)) + 1
+    : 0;
+  const color = DEFAULT_CATEGORY_COLORS[categoriesCache.length % DEFAULT_CATEGORY_COLORS.length];
+  const ref = await categoriesCol(uid).add({ name, color, order, isDefault: false });
+  const category = { id: ref.id, name, color, order, isDefault: false };
+  categoriesCache.push(category);
+  return category;
+}
+
 async function updateThemeSetting(uid, theme) {
   await userDocRef(uid).update({ 'settings.theme': theme });
 }
