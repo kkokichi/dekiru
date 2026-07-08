@@ -463,22 +463,6 @@ h3 {
 }
 
 /* ── クイック入力ボタン ── */
-.quick-entry-btn {
-  margin-bottom: 20px;
-  text-align: left;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  font-weight: 600;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-}
-.quick-entry-sub {
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.75;
-}
-
 /* ── 習慣カレンダー ── */
 .calendar-header {
   display: flex;
